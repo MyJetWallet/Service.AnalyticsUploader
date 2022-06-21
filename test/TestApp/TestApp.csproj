@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FubarCoder.RestSharp.Portable.Core" Version="4.0.8" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.40.0" />
+    <PackageReference Include="protobuf-net.Grpc" Version="1.0.152" />
+    <PackageReference Include="RestClient" Version="3.860.28084" />
+    <PackageReference Include="RestSharp" Version="108.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Service.AnalyticsUploader.Client\Service.AnalyticsUploader.Client.csproj" />
+    <ProjectReference Include="..\..\src\Service.AnalyticsUploader.Grpc\Service.AnalyticsUploader.Grpc.csproj" />
+  </ItemGroup>
+
+</Project>
