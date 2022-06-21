@@ -61,10 +61,8 @@ namespace Service.AnalyticsUploader.Job
 				_logger.LogInformation("Handle ClientRegisterMessage, clientId: {clientId}, try send event...", clientId);
 
 				string userAgent = registerMessage.UserAgent;
-				if (!userAgent.IsMobileClient())
-					continue;
-
 				string deviceId = GetDeviceId(userAgent);
+
 				if (deviceId == null)
 				{
 					_logger.LogWarning("Can't detect mobile os version for UserAgent: {agent}, analitics upload skipped.", userAgent);
@@ -103,20 +101,19 @@ namespace Service.AnalyticsUploader.Job
 
 		private static string GetDeviceId(string userAgent)
 		{
-			if (string.IsNullOrWhiteSpace(userAgent))
-				return Program.Settings.AppsFlyerDefaultApplicationId;
-
-			string device = userAgent.GetDevice();
-
-			switch (device)
+			if (!string.IsNullOrWhiteSpace(userAgent))
 			{
-				case "Web-iOS":
+				string device = userAgent.GetDevice();
+				bool isMobileClient = userAgent.IsMobileClient();
+
+				if (isMobileClient && device == "Web-iOS")
 					return Program.Settings.AppsFlyerIosApplicationId;
-				case "Web-Android":
+
+				if (isMobileClient && device == "Web-Android")
 					return Program.Settings.AppsFlyerAndroidApplicationId;
-				default:
-					return Program.Settings.AppsFlyerDefaultApplicationId;
 			}
+
+			return Program.Settings.AppsFlyerDefaultApplicationId;
 		}
 	}
 }
