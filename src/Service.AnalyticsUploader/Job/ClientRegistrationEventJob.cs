@@ -57,12 +57,10 @@ namespace Service.AnalyticsUploader.Job
 			foreach (ClientRegisterMessage registerMessage in messages)
 			{
 				string clientId = registerMessage.TraderId;
-
-				_logger.LogInformation("Handle ClientRegisterMessage, clientId: {clientId}, try send event...", clientId);
+				_logger.LogInformation("Handle ClientRegisterMessage, clientId: {clientId}.", clientId);
 
 				string userAgent = registerMessage.UserAgent;
 				string deviceId = GetDeviceId(userAgent);
-
 				if (deviceId == null)
 				{
 					_logger.LogWarning("Can't detect mobile os version for UserAgent: {agent}, analitics upload skipped.", userAgent);
@@ -88,6 +86,7 @@ namespace Service.AnalyticsUploader.Job
 				}
 
 				string cuid = clientProfile.ExternalClientId;
+
 
 				await _sender.SendMessage(Program.Settings.AppsFlyerAndroidApplicationId, new RegistrationEvent
 				{

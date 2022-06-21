@@ -40,6 +40,8 @@ namespace Service.AnalyticsUploader.Services
 
 			request.AddBody(JsonConvert.SerializeObject(body));
 
+			_logger.LogInformation("Send AppsFlyer \"{event}\" event with CUID: {cuid} to app \"{app}\".", analiticsEvent.EventName, externalClientId, applicationId);
+
 			RestResponse response = await client.ExecuteAsync(request);
 
 			if (!response.IsSuccessful || response.ErrorException != null)
