@@ -54,14 +54,14 @@ namespace Service.AnalyticsUploader.Job
 
 			PersonalDataGrpcModel[] personalDataItems = personalDataResponse.PersonalDatas.ToArray();
 
-			foreach (ClientRegisterMessage registerMessage in messages)
+			foreach (ClientRegisterMessage message in messages)
 			{
-				string clientId = registerMessage.TraderId;
+				string clientId = message.TraderId;
 				_logger.LogInformation("Handle ClientRegisterMessage, clientId: {clientId}.", clientId);
 
-				string userAgent = registerMessage.UserAgent;
-				string deviceId = GetDeviceId(userAgent);
-				if (deviceId == null)
+				string userAgent = message.UserAgent;
+				string applicationId = GetApplicationId(userAgent);
+				if (applicationId == null)
 				{
 					_logger.LogWarning("Can't detect mobile os version for UserAgent: {agent}, analitics upload skipped.", userAgent);
 					continue;
@@ -87,18 +87,17 @@ namespace Service.AnalyticsUploader.Job
 
 				string cuid = clientProfile.ExternalClientId;
 
-
-				await _sender.SendMessage(Program.Settings.AppsFlyerAndroidApplicationId, new RegistrationEvent
+				await _sender.SendMessage(applicationId, new RegistrationEvent
 				{
 					RegCountry = personalData.CountryOfRegistration,
 					UserId = cuid,
 					ReferralCode = clientProfile.ReferralCode,
-					DeviceId = deviceId
-				}, cuid, registerMessage.IpAddress);
+					DeviceId = applicationId
+				}, cuid, message.IpAddress);
 			}
 		}
 
-		private static string GetDeviceId(string userAgent)
+		private static string GetApplicationId(string userAgent)
 		{
 			if (!string.IsNullOrWhiteSpace(userAgent))
 			{
