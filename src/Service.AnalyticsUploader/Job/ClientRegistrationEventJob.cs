@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DotNetCoreDecorators;
@@ -12,6 +11,7 @@ using Service.PersonalData.Grpc;
 using Service.PersonalData.Grpc.Contracts;
 using Service.PersonalData.Grpc.Models;
 using Service.Registration.Domain.Models;
+using SimpleTrading.UserAgent;
 
 namespace Service.AnalyticsUploader.Job
 {
@@ -61,6 +61,9 @@ namespace Service.AnalyticsUploader.Job
 				_logger.LogInformation("Handle ClientRegisterMessage, clientId: {clientId}, try send event...", clientId);
 
 				string userAgent = registerMessage.UserAgent;
+				if (!userAgent.IsMobileClient())
+					continue;
+
 				string deviceId = GetDeviceId(userAgent);
 				if (deviceId == null)
 				{
@@ -101,13 +104,19 @@ namespace Service.AnalyticsUploader.Job
 		private static string GetDeviceId(string userAgent)
 		{
 			if (string.IsNullOrWhiteSpace(userAgent))
-				return null;
+				return Program.Settings.AppsFlyerDefaultApplicationId;
 
-			return userAgent.Contains("iphone", StringComparison.InvariantCultureIgnoreCase)
-				? Program.Settings.AppsFlyerIosApplicationId
-				: userAgent.Contains("android", StringComparison.InvariantCultureIgnoreCase)
-					? Program.Settings.AppsFlyerAndroidApplicationId
-					: null;
+			string device = userAgent.GetDevice();
+
+			switch (device)
+			{
+				case "Web-iOS":
+					return Program.Settings.AppsFlyerIosApplicationId;
+				case "Web-Android":
+					return Program.Settings.AppsFlyerAndroidApplicationId;
+				default:
+					return Program.Settings.AppsFlyerDefaultApplicationId;
+			}
 		}
 	}
 }

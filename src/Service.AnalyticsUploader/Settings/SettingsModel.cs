@@ -35,6 +35,9 @@ namespace Service.AnalyticsUploader.Settings
 		[YamlProperty("AnalyticsUploader.AppsFlyerAndroidApplicationId")]
 		public string AppsFlyerAndroidApplicationId { get; set; }
 
+		[YamlProperty("AnalyticsUploader.AppsFlyerDefaultApplicationId")]
+		public string AppsFlyerDefaultApplicationId { get; set; }
+
 		[YamlProperty("AnalyticsUploader.AppsFlyerIosApplicationId")]
 		public string AppsFlyerIosApplicationId { get; set; }
 

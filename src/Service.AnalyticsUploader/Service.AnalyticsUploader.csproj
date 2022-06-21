@@ -28,6 +28,7 @@
     <PackageReference Include="MySettingsReader" Version="1.2.2" />
     <PackageReference Include="MyJetWallet.Sdk.ServiceBus" Version="2.2.4" />
     <PackageReference Include="MyJetWallet.Service.Registration.Client" Version="2.2.2" />
+    <PackageReference Include="SimpleTrading.UserAgent" Version="1.0.10" />
   </ItemGroup>
 
   <ItemGroup>
