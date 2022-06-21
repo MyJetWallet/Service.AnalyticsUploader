@@ -26,7 +26,7 @@ namespace Service.AnalyticsUploader.Modules
 
 			IMyNoSqlSubscriber myNosqlClient = builder.CreateNoSqlClient(Program.Settings.MyNoSqlReaderHostPort, Program.LogFactory);
 
-			builder.RegisterPersonalDataClient(Program.Settings.PersonalDataServiceUrl);
+			builder.RegisterPersonalDataClient(Program.Settings.PersonalDataGrpcServiceUrl);
 			builder.RegisterClientProfileClients(myNosqlClient, Program.Settings.ClientProfileGrpcServiceUrl);
 		}
 	}

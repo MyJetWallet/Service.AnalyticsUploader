@@ -20,8 +20,8 @@ namespace Service.AnalyticsUploader.Settings
 		[YamlProperty("AnalyticsUploader.MyNoSqlReaderHostPort")]
 		public string MyNoSqlReaderHostPort { get; set; }
 
-		[YamlProperty("AnalyticsUploader.PersonalDataServiceUrl")]
-		public string PersonalDataServiceUrl { get; set; }
+		[YamlProperty("AnalyticsUploader.PersonalDataGrpcServiceUrl")]
+		public string PersonalDataGrpcServiceUrl { get; set; }
 
 		[YamlProperty("AnalyticsUploader.ClientProfileGrpcServiceUrl")]
 		public string ClientProfileGrpcServiceUrl { get; set; }
