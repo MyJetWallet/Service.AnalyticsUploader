@@ -7,9 +7,6 @@ namespace Service.AnalyticsUploader.Domain.Models.AnaliticsEvents
 		[JsonIgnore]
 		public string EventName => "af_earn_unsubscribe";
 
-		[JsonPropertyName("deviceId")]
-		public string DeviceId { get; set; }
-
 		[JsonPropertyName("userId")]
 		public string UserId { get; set; }
 

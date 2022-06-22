@@ -5,13 +5,13 @@ using DotNetCoreDecorators;
 using Microsoft.Extensions.Logging;
 using Service.AnalyticsUploader.Domain;
 using Service.AnalyticsUploader.Domain.Models.AnaliticsEvents;
+using Service.AnalyticsUploader.Services;
 using Service.ClientProfile.Grpc;
 using Service.ClientProfile.Grpc.Models.Requests;
 using Service.PersonalData.Grpc;
 using Service.PersonalData.Grpc.Contracts;
 using Service.PersonalData.Grpc.Models;
 using Service.Registration.Domain.Models;
-using SimpleTrading.UserAgent;
 
 namespace Service.AnalyticsUploader.Job
 {
@@ -57,10 +57,10 @@ namespace Service.AnalyticsUploader.Job
 			foreach (ClientRegisterMessage message in messages)
 			{
 				string clientId = message.TraderId;
-				_logger.LogInformation("Handle ClientRegisterMessage, clientId: {clientId}.", clientId);
+				_logger.LogInformation("Handle ClientRegisterMessage message, clientId: {clientId}.", clientId);
 
 				string userAgent = message.UserAgent;
-				string applicationId = GetApplicationId(userAgent);
+				string applicationId = ApplicationHelper.GetApplicationId(userAgent);
 				if (applicationId == null)
 				{
 					_logger.LogWarning("Can't detect mobile os version for UserAgent: {agent}, analitics upload skipped.", userAgent);
@@ -95,23 +95,6 @@ namespace Service.AnalyticsUploader.Job
 					DeviceId = applicationId
 				}, cuid, message.IpAddress);
 			}
-		}
-
-		private static string GetApplicationId(string userAgent)
-		{
-			if (!string.IsNullOrWhiteSpace(userAgent))
-			{
-				string device = userAgent.GetDevice();
-				bool isMobileClient = userAgent.IsMobileClient();
-
-				if (isMobileClient && device == "Web-iOS")
-					return Program.Settings.AppsFlyerIosApplicationId;
-
-				if (isMobileClient && device == "Web-Android")
-					return Program.Settings.AppsFlyerAndroidApplicationId;
-			}
-
-			return Program.Settings.AppsFlyerDefaultApplicationId;
 		}
 	}
 }

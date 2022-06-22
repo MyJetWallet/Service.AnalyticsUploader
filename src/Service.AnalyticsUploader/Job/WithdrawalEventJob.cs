@@ -5,36 +5,35 @@ using Microsoft.Extensions.Logging;
 using Service.AnalyticsUploader.Domain;
 using Service.AnalyticsUploader.Domain.Models.AnaliticsEvents;
 using Service.AnalyticsUploader.Services;
+using Service.Bitgo.WithdrawalProcessor.Domain.Models;
 using Service.ClientProfile.Grpc;
 using Service.ClientProfile.Grpc.Models.Requests;
-using Service.HighYieldEngine.Domain.Models.Constants;
-using Service.HighYieldEngine.Domain.Models.Messages;
 
 namespace Service.AnalyticsUploader.Job
 {
-	public class EarnAnaliticsEventJob
+	public class WithdrawalEventJob
 	{
-		private readonly ILogger<EarnAnaliticsEventJob> _logger;
+		private readonly ILogger<WithdrawalEventJob> _logger;
 		private readonly IAppsFlyerSender _sender;
 		private readonly IClientProfileService _clientProfileService;
 
-		public EarnAnaliticsEventJob(ILogger<EarnAnaliticsEventJob> logger,
-			ISubscriber<IReadOnlyList<EarnAnaliticsEvent>> registerSubscriber,
+		public WithdrawalEventJob(ILogger<WithdrawalEventJob> logger,
+			ISubscriber<IReadOnlyList<Withdrawal>> subscriber,
 			IAppsFlyerSender sender,
 			IClientProfileService clientProfileService)
 		{
 			_logger = logger;
 			_sender = sender;
 			_clientProfileService = clientProfileService;
-			registerSubscriber.Subscribe(HandleEvent);
+			subscriber.Subscribe(HandleEvent);
 		}
 
-		private async ValueTask HandleEvent(IReadOnlyList<EarnAnaliticsEvent> messages)
+		private async ValueTask HandleEvent(IReadOnlyList<Withdrawal> messages)
 		{
-			foreach (EarnAnaliticsEvent message in messages)
+			foreach (Withdrawal message in messages)
 			{
 				string clientId = message.ClientId;
-				_logger.LogInformation("Handle EarnAnaliticsEvent message, clientId: {clientId}, offerId: {offerId}.", clientId, messages);
+				_logger.LogInformation("Handle Withdrawal message, clientId: {clientId}.", message.ClientId);
 
 				var userAgent = "Web"; //todo
 				string applicationId = ApplicationHelper.GetApplicationId(userAgent);
@@ -45,31 +44,23 @@ namespace Service.AnalyticsUploader.Job
 				}
 
 				string cuid = await GetExternalClientId(clientId);
-				if (cuid == null)
+				string destinationClientId = await GetExternalClientId(message.DestinationClientId);
+				if (cuid == null || destinationClientId == null)
 					continue;
 
-				IAnaliticsEvent analiticsEvent = message.ActionType == EarnAnaliticsEventType.Subscribe
-					? (IAnaliticsEvent) new EarnSubscribeEvent
+				IAnaliticsEvent analiticsEvent = message.IsInternal
+					? (IAnaliticsEvent) new TransferByWalletInternalEvent
 					{
-						UserId = cuid,
-						OfferId = message.OfferId,
 						Amount = message.Amount,
-						Asset = message.Asset,
-						Balance = message.Balance,
-						IsHot = message.IsHot,
-						IsTopUp = message.IsTopUp,
-						Apy = message.Apy,
-						CurrentApy = message.CurrentApy
+						Currency = message.AssetSymbol,
+						Receiver = destinationClientId
 					}
-					: new EarnUnsubscribeEvent
+					: new TransferByWalletExternalEvent
 					{
-						UserId = cuid,
-						OfferId = message.OfferId,
 						Amount = message.Amount,
-						Asset = message.Asset,
-						Balance = message.Balance,
-						IsHot = message.IsHot,
-						CurrentApy = message.CurrentApy
+						Currency = message.AssetSymbol,
+						Receiver = destinationClientId,
+						Network = message.Blockchain //todo
 					};
 
 				await _sender.SendMessage(applicationId, analiticsEvent, cuid);
