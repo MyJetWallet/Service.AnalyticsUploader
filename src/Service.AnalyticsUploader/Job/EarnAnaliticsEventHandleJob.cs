@@ -32,7 +32,7 @@ namespace Service.AnalyticsUploader.Job
 			{
 				string clientId = message.ClientId;
 
-				_logger.LogInformation("Handle EarnAnaliticsEvent message, clientId: {clientId}, offerId: {offerId}.", clientId, messages);
+				_logger.LogInformation("Handle EarnAnaliticsEvent message, clientId: {clientId}, offerId: {offerId}.", clientId, message.OfferId);
 
 				IAnaliticsEvent analiticsEvent = message.ActionType == EarnAnaliticsEventType.Subscribe
 					? (IAnaliticsEvent) new EarnSubscribeEvent
