@@ -2,10 +2,10 @@
 
 namespace Service.AnalyticsUploader.Domain.Models.AnaliticsEvents
 {
-	public class TransferByWalletExternalEvent : IAnaliticsEvent
+	public class RecieveTransferFromInternalWalletEvent : IAnaliticsEvent
 	{
 		[JsonIgnore]
-		public string EventName => "af_transfer_by_wallet_external";
+		public string EventName => "af_recieve_transfer_from_internal_wallet";
 
 		[JsonPropertyName("amount")]
 		public decimal Amount { get; set; }
@@ -13,8 +13,8 @@ namespace Service.AnalyticsUploader.Domain.Models.AnaliticsEvents
 		[JsonPropertyName("currency")]
 		public string Currency { get; set; }
 
-		[JsonPropertyName("receiver")]
-		public string Receiver { get; set; }
+		[JsonPropertyName("sender")]
+		public string Sender { get; set; }
 
 		[JsonPropertyName("network")]
 		public string Network { get; set; }

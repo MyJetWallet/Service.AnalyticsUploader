@@ -4,28 +4,25 @@ using DotNetCoreDecorators;
 using Microsoft.Extensions.Logging;
 using Service.AnalyticsUploader.Domain;
 using Service.AnalyticsUploader.Domain.Models.AnaliticsEvents;
-using Service.AnalyticsUploader.Services;
 using Service.ClientProfile.Grpc;
-using Service.ClientProfile.Grpc.Models.Requests;
 using Service.HighYieldEngine.Domain.Models.Constants;
 using Service.HighYieldEngine.Domain.Models.Messages;
+using Service.PersonalData.Grpc;
 
 namespace Service.AnalyticsUploader.Job
 {
-	public class EarnAnaliticsEventHandleJob
+	public class EarnAnaliticsEventHandleJob : MessageHandleJobBase
 	{
 		private readonly ILogger<EarnAnaliticsEventHandleJob> _logger;
-		private readonly IAppsFlyerSender _sender;
-		private readonly IClientProfileService _clientProfileService;
 
 		public EarnAnaliticsEventHandleJob(ILogger<EarnAnaliticsEventHandleJob> logger,
 			ISubscriber<IReadOnlyList<EarnAnaliticsEvent>> registerSubscriber,
+			IPersonalDataServiceGrpc personalDataServiceGrpc,
 			IAppsFlyerSender sender,
-			IClientProfileService clientProfileService)
+			IClientProfileService clientProfileService) :
+				base(logger, personalDataServiceGrpc, clientProfileService, sender)
 		{
 			_logger = logger;
-			_sender = sender;
-			_clientProfileService = clientProfileService;
 			registerSubscriber.Subscribe(HandleEvent);
 		}
 
@@ -34,19 +31,8 @@ namespace Service.AnalyticsUploader.Job
 			foreach (EarnAnaliticsEvent message in messages)
 			{
 				string clientId = message.ClientId;
+
 				_logger.LogInformation("Handle EarnAnaliticsEvent message, clientId: {clientId}, offerId: {offerId}.", clientId, messages);
-
-				var userAgent = "Web"; //todo
-				string applicationId = ApplicationHelper.GetApplicationId(userAgent);
-				if (applicationId == null)
-				{
-					_logger.LogWarning("Can't detect mobile os version for UserAgent: {agent}, analitics upload skipped.", userAgent);
-					continue;
-				}
-
-				string cuid = await GetExternalClientId(clientId);
-				if (cuid == null)
-					continue;
 
 				IAnaliticsEvent analiticsEvent = message.ActionType == EarnAnaliticsEventType.Subscribe
 					? (IAnaliticsEvent) new EarnSubscribeEvent
@@ -70,23 +56,8 @@ namespace Service.AnalyticsUploader.Job
 						CurrentApy = message.CurrentApy
 					};
 
-				await _sender.SendMessage(applicationId, analiticsEvent, cuid);
+				await SendMessage(clientId, analiticsEvent);
 			}
-		}
-
-		private async Task<string> GetExternalClientId(string clientId)
-		{
-			ClientProfile.Domain.Models.ClientProfile clientProfile = await _clientProfileService.GetOrCreateProfile(new GetClientProfileRequest
-			{
-				ClientId = clientId
-			});
-
-			string id = clientProfile?.ExternalClientId;
-
-			if (id == null)
-				_logger.LogError("Can't get client profile for clientId: {clientId}", clientId);
-
-			return id;
 		}
 	}
 }

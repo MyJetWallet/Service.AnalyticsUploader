@@ -5,33 +5,25 @@ using DotNetCoreDecorators;
 using Microsoft.Extensions.Logging;
 using Service.AnalyticsUploader.Domain;
 using Service.AnalyticsUploader.Domain.Models.AnaliticsEvents;
-using Service.AnalyticsUploader.Services;
 using Service.ClientProfile.Grpc;
-using Service.ClientProfile.Grpc.Models.Requests;
 using Service.PersonalData.Grpc;
-using Service.PersonalData.Grpc.Contracts;
 using Service.PersonalData.Grpc.Models;
 using Service.Registration.Domain.Models;
 
 namespace Service.AnalyticsUploader.Job
 {
-	public class ClientRegisterMessageHandleJob
+	public class ClientRegisterMessageHandleJob : MessageHandleJobBase
 	{
 		private readonly ILogger<ClientRegisterMessageHandleJob> _logger;
-		private readonly IPersonalDataServiceGrpc _personalDataServiceGrpc;
-		private readonly IAppsFlyerSender _sender;
-		private readonly IClientProfileService _clientProfileService;
 
 		public ClientRegisterMessageHandleJob(ILogger<ClientRegisterMessageHandleJob> logger,
 			ISubscriber<IReadOnlyList<ClientRegisterMessage>> registerSubscriber,
 			IPersonalDataServiceGrpc personalDataServiceGrpc,
 			IAppsFlyerSender sender,
-			IClientProfileService clientProfileService)
+			IClientProfileService clientProfileService) :
+				base(logger, personalDataServiceGrpc, clientProfileService, sender)
 		{
 			_logger = logger;
-			_personalDataServiceGrpc = personalDataServiceGrpc;
-			_sender = sender;
-			_clientProfileService = clientProfileService;
 			registerSubscriber.Subscribe(HandleEvent);
 		}
 
@@ -39,33 +31,13 @@ namespace Service.AnalyticsUploader.Job
 		{
 			List<string> clientIds = messages.Select(message => message.TraderId).ToList();
 
-			var request = new GetByIdsRequest
-			{
-				Ids = clientIds
-			};
-
-			PersonalDataBatchResponseContract personalDataResponse = await _personalDataServiceGrpc.GetByIdsAsync(request);
-
-			if (personalDataResponse == null)
-			{
-				_logger.LogError("Can't get personal data with request: {@request}", request);
-				return;
-			}
-
-			PersonalDataGrpcModel[] personalDataItems = personalDataResponse.PersonalDatas.ToArray();
+			PersonalDataGrpcModel[] personalDataItems = await GetPersonalData(clientIds);
 
 			foreach (ClientRegisterMessage message in messages)
 			{
 				string clientId = message.TraderId;
-				_logger.LogInformation("Handle ClientRegisterMessage message, clientId: {clientId}.", clientId);
 
-				string userAgent = message.UserAgent;
-				string applicationId = ApplicationHelper.GetApplicationId(userAgent);
-				if (applicationId == null)
-				{
-					_logger.LogWarning("Can't detect mobile os version for UserAgent: {agent}, analitics upload skipped.", userAgent);
-					continue;
-				}
+				_logger.LogInformation("Handle ClientRegisterMessage message, clientId: {clientId}.", clientId);
 
 				PersonalDataGrpcModel personalData = personalDataItems.FirstOrDefault(model => model.Id == clientId);
 				if (personalData == null)
@@ -74,26 +46,19 @@ namespace Service.AnalyticsUploader.Job
 					continue;
 				}
 
-				ClientProfile.Domain.Models.ClientProfile clientProfile = await _clientProfileService.GetOrCreateProfile(new GetClientProfileRequest
-				{
-					ClientId = clientId
-				});
-
+				ClientProfile.Domain.Models.ClientProfile clientProfile = await GetClientProfile(clientId);
 				if (clientProfile == null)
-				{
-					_logger.LogError("Can't get client profile for clientId: {clientId}", clientId);
 					continue;
-				}
 
 				string cuid = clientProfile.ExternalClientId;
 
-				await _sender.SendMessage(applicationId, new RegistrationEvent
+				await SendMessage(clientId, new RegistrationEvent
 				{
 					RegCountry = personalData.CountryOfRegistration,
 					UserId = cuid,
 					ReferralCode = clientProfile.ReferralCode,
-					DeviceId = applicationId
-				}, cuid, message.IpAddress);
+					DeviceId = GetApplicationId()
+				}, message.UserAgent, message.IpAddress, cuid: cuid);
 			}
 		}
 	}

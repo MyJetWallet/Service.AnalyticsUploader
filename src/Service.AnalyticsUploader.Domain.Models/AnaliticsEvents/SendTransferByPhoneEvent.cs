@@ -2,10 +2,10 @@
 
 namespace Service.AnalyticsUploader.Domain.Models.AnaliticsEvents
 {
-	public class TransferByWalletInternalEvent : IAnaliticsEvent
+	public class SendTransferByPhoneEvent : IAnaliticsEvent
 	{
 		[JsonIgnore]
-		public string EventName => "af_transfer_by_wallet_internal";
+		public string EventName => "af_send_transfer_by_phone";
 
 		[JsonPropertyName("amount")]
 		public decimal Amount { get; set; }
