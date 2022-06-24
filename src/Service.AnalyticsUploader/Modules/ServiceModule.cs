@@ -32,6 +32,7 @@ namespace Service.AnalyticsUploader.Modules
 			builder.RegisterMyServiceBusSubscriberBatch<Transfer>(tcpServiceBus, Transfer.TopicName, QueueName, TopicQueueType.DeleteOnDisconnect);
 			builder.RegisterMyServiceBusSubscriberBatch<KycProfileUpdatedMessage>(tcpServiceBus, KycProfileUpdatedMessage.TopicName, QueueName, TopicQueueType.DeleteOnDisconnect);
 			builder.RegisterMyServiceBusSubscriberBatch<SwapMessage>(tcpServiceBus, SwapMessage.TopicName, QueueName, TopicQueueType.DeleteOnDisconnect);
+			builder.RegisterMyServiceBusSubscriberBatch<InvestOrder>(tcpServiceBus, InvestOrder.TopicName, QueueName, TopicQueueType.DeleteOnDisconnect);
 			tcpServiceBus.Start();
 
 			IMyNoSqlSubscriber myNosqlClient = builder.CreateNoSqlClient(Program.Settings.MyNoSqlReaderHostPort, Program.LogFactory);
@@ -48,6 +49,7 @@ namespace Service.AnalyticsUploader.Modules
 			builder.RegisterType<TransferHandleJob>().AutoActivate().SingleInstance();
 			builder.RegisterType<WithdrawalHandleJob>().AutoActivate().SingleInstance();
 			builder.RegisterType<SwapMessageHandleJob>().AutoActivate().SingleInstance();
+			builder.RegisterType<InvestOrderHandleJob>().AutoActivate().SingleInstance();
 		}
 	}
 }
