@@ -22,6 +22,7 @@
     <PackageReference Include="MyJetWallet.Service.HighYieldEngine.Client" Version="1.0.94" />
     <PackageReference Include="MyJetWallet.Service.InternalTransfer.Client" Version="1.1.8" />
     <PackageReference Include="MyJetWallet.Service.PersonalData.Client" Version="1.2.3" />
+    <PackageReference Include="MyJetWallet.Service.Service.KYC.Client" Version="1.5.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="prometheus-net.AspNetCore" Version="6.0.0" />
     <PackageReference Include="protobuf-net.Grpc.AspNetCore" Version="1.0.152" />

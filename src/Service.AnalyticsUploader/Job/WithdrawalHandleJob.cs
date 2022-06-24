@@ -11,13 +11,13 @@ using Service.ClientProfile.Grpc.Models.Requests;
 
 namespace Service.AnalyticsUploader.Job
 {
-	public class WithdrawalEventJob
+	public class WithdrawalHandleJob
 	{
-		private readonly ILogger<WithdrawalEventJob> _logger;
+		private readonly ILogger<WithdrawalHandleJob> _logger;
 		private readonly IAppsFlyerSender _sender;
 		private readonly IClientProfileService _clientProfileService;
 
-		public WithdrawalEventJob(ILogger<WithdrawalEventJob> logger,
+		public WithdrawalHandleJob(ILogger<WithdrawalHandleJob> logger,
 			ISubscriber<IReadOnlyList<Withdrawal>> subscriber,
 			IAppsFlyerSender sender,
 			IClientProfileService clientProfileService)

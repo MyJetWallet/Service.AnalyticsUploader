@@ -12,13 +12,13 @@ using Service.HighYieldEngine.Domain.Models.Messages;
 
 namespace Service.AnalyticsUploader.Job
 {
-	public class EarnAnaliticsEventJob
+	public class EarnAnaliticsEventHandleJob
 	{
-		private readonly ILogger<EarnAnaliticsEventJob> _logger;
+		private readonly ILogger<EarnAnaliticsEventHandleJob> _logger;
 		private readonly IAppsFlyerSender _sender;
 		private readonly IClientProfileService _clientProfileService;
 
-		public EarnAnaliticsEventJob(ILogger<EarnAnaliticsEventJob> logger,
+		public EarnAnaliticsEventHandleJob(ILogger<EarnAnaliticsEventHandleJob> logger,
 			ISubscriber<IReadOnlyList<EarnAnaliticsEvent>> registerSubscriber,
 			IAppsFlyerSender sender,
 			IClientProfileService clientProfileService)
@@ -51,7 +51,6 @@ namespace Service.AnalyticsUploader.Job
 				IAnaliticsEvent analiticsEvent = message.ActionType == EarnAnaliticsEventType.Subscribe
 					? (IAnaliticsEvent) new EarnSubscribeEvent
 					{
-						UserId = cuid,
 						OfferId = message.OfferId,
 						Amount = message.Amount,
 						Asset = message.Asset,
@@ -63,7 +62,6 @@ namespace Service.AnalyticsUploader.Job
 					}
 					: new EarnUnsubscribeEvent
 					{
-						UserId = cuid,
 						OfferId = message.OfferId,
 						Amount = message.Amount,
 						Asset = message.Asset,

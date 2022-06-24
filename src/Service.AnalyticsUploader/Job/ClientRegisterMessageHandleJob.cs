@@ -15,14 +15,14 @@ using Service.Registration.Domain.Models;
 
 namespace Service.AnalyticsUploader.Job
 {
-	public class ClientRegistrationEventJob
+	public class ClientRegisterMessageHandleJob
 	{
-		private readonly ILogger<ClientRegistrationEventJob> _logger;
+		private readonly ILogger<ClientRegisterMessageHandleJob> _logger;
 		private readonly IPersonalDataServiceGrpc _personalDataServiceGrpc;
 		private readonly IAppsFlyerSender _sender;
 		private readonly IClientProfileService _clientProfileService;
 
-		public ClientRegistrationEventJob(ILogger<ClientRegistrationEventJob> logger,
+		public ClientRegisterMessageHandleJob(ILogger<ClientRegisterMessageHandleJob> logger,
 			ISubscriber<IReadOnlyList<ClientRegisterMessage>> registerSubscriber,
 			IPersonalDataServiceGrpc personalDataServiceGrpc,
 			IAppsFlyerSender sender,

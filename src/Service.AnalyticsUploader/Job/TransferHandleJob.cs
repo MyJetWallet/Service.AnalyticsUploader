@@ -11,13 +11,13 @@ using Service.InternalTransfer.Domain.Models;
 
 namespace Service.AnalyticsUploader.Job
 {
-	public class TransferEventJob
+	public class TransferHandleJob
 	{
-		private readonly ILogger<TransferEventJob> _logger;
+		private readonly ILogger<TransferHandleJob> _logger;
 		private readonly IAppsFlyerSender _sender;
 		private readonly IClientProfileService _clientProfileService;
 
-		public TransferEventJob(ILogger<TransferEventJob> logger,
+		public TransferHandleJob(ILogger<TransferHandleJob> logger,
 			ISubscriber<IReadOnlyList<Transfer>> subscriber,
 			IAppsFlyerSender sender,
 			IClientProfileService clientProfileService)

@@ -7,9 +7,6 @@ namespace Service.AnalyticsUploader.Domain.Models.AnaliticsEvents
 		[JsonIgnore]
 		public string EventName => "af_earn_subscribe";
 
-		[JsonPropertyName("userId")]
-		public string UserId { get; set; }
-
 		[JsonPropertyName("isHot")]
 		public bool IsHot { get; set; }
 
