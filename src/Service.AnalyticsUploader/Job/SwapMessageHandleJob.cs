@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DotNetCoreDecorators;
@@ -9,38 +8,41 @@ using Service.AnalyticsUploader.Domain.Models.AnaliticsEvents;
 using Service.AnalyticsUploader.Services;
 using Service.ClientProfile.Grpc;
 using Service.ClientProfile.Grpc.Models.Requests;
-using Service.KYC.Domain.Models;
-using Service.KYC.Domain.Models.Enum;
-using Service.KYC.Domain.Models.Messages;
-using Service.PersonalData.Domain.Models;
+using Service.IndexPrices.Client;
+using Service.IndexPrices.Domain.Models;
+using Service.Liquidity.Converter.Domain.Models;
 using Service.PersonalData.Grpc;
 using Service.PersonalData.Grpc.Contracts;
 using Service.PersonalData.Grpc.Models;
 
 namespace Service.AnalyticsUploader.Job
 {
-	public class KycProfileUpdatedMessageHandleJob
+	public class SwapMessageHandleJob
 	{
-		private readonly ILogger<KycProfileUpdatedMessageHandleJob> _logger;
+		private const string UsdAsset = "USD";
+
+		private readonly ILogger<SwapMessageHandleJob> _logger;
 		private readonly IAppsFlyerSender _sender;
 		private readonly IClientProfileService _clientProfileService;
 		private readonly IPersonalDataServiceGrpc _personalDataServiceGrpc;
+		private readonly IConvertIndexPricesClient _pricesConverter;
 
-		public KycProfileUpdatedMessageHandleJob(ILogger<KycProfileUpdatedMessageHandleJob> logger,
-			ISubscriber<IReadOnlyList<KycProfileUpdatedMessage>> subscriber,
+		public SwapMessageHandleJob(ILogger<SwapMessageHandleJob> logger,
+			ISubscriber<IReadOnlyList<SwapMessage>> subscriber,
 			IAppsFlyerSender sender,
-			IClientProfileService clientProfileService, IPersonalDataServiceGrpc personalDataServiceGrpc)
+			IClientProfileService clientProfileService, IPersonalDataServiceGrpc personalDataServiceGrpc, IConvertIndexPricesClient pricesConverter)
 		{
 			_logger = logger;
 			_sender = sender;
 			_clientProfileService = clientProfileService;
 			_personalDataServiceGrpc = personalDataServiceGrpc;
+			_pricesConverter = pricesConverter;
 			subscriber.Subscribe(HandleEvent);
 		}
 
-		private async ValueTask HandleEvent(IReadOnlyList<KycProfileUpdatedMessage> messages)
+		private async ValueTask HandleEvent(IReadOnlyList<SwapMessage> messages)
 		{
-			List<string> clientIds = messages.Select(message => message.ClientId).ToList();
+			List<string> clientIds = messages.Select(message => message.AccountId1).ToList();
 
 			var request = new GetByIdsRequest
 			{
@@ -56,16 +58,13 @@ namespace Service.AnalyticsUploader.Job
 
 			PersonalDataGrpcModel[] personalDataItems = personalDataResponse.PersonalDatas.ToArray();
 
-			foreach (KycProfileUpdatedMessage message in messages)
+			foreach (SwapMessage message in messages)
 			{
-				KycProfile newProfile = message.NewProfile;
-				if (newProfile.ActiveVerificationStatus != VerificationStatus.Finished
-					|| newProfile.ManualReviewStatus == ManualReviewStatus.ReviewedAndBlocked
-					|| newProfile.ManualReviewStatus == ManualReviewStatus.NotReviewed)
+				if (message.QuoteType != QuoteType.Market)
 					continue;
 
-				string clientId = message.ClientId;
-				_logger.LogInformation("Handle KycProfileUpdatedMessage message, clientId: {clientId}.", clientId);
+				string clientId = message.AccountId1;
+				_logger.LogInformation("Handle SwapMessage message, clientId: {clientId}.", clientId);
 
 				PersonalDataGrpcModel personalData = personalDataItems.FirstOrDefault(model => model.Id == clientId);
 				if (personalData == null)
@@ -86,30 +85,20 @@ namespace Service.AnalyticsUploader.Job
 				if (cuid == null)
 					continue;
 
-				PersonalDataSexEnum? sex = personalData.Sex;
+				decimal? amountUsd = ConvertToAsset(message.AssetId2, UsdAsset, decimal.Parse(message.Volume2), _pricesConverter, _logger);
 
-				IAnaliticsEvent analiticsEvent = new SuccessfulKycPassingEvent
+				IAnaliticsEvent analiticsEvent = new ExchangingAssetEvent
 				{
-					ResCountry = newProfile.Country,
-					Age = CalculateAge(personalData.DateOfBirth),
-					Sex = sex switch {PersonalDataSexEnum.Male => "male",PersonalDataSexEnum.Female => "female",_ => null}
+					TradeFee = message.FeeAmount,
+					SourceCurrency = message.AssetId1,
+					DestinationCurrency = message.AssetId2,
+					QuoteId = message.Id,
+					AmountUsd = amountUsd.GetValueOrDefault(),
+					AutoTrade = false
 				};
-
+				
 				await _sender.SendMessage(applicationId, analiticsEvent, cuid);
 			}
-		}
-
-		private static int? CalculateAge(DateTime? birthDate)
-		{
-			if (birthDate == null)
-				return null;
-
-			DateTime now = DateTime.Today;
-			int age = now.Year - birthDate.Value.Year;
-			if (now < birthDate.Value.AddYears(age))
-				age--;
-
-			return age;
 		}
 
 		private async Task<string> GetExternalClientId(string clientId)
@@ -125,6 +114,19 @@ namespace Service.AnalyticsUploader.Job
 				_logger.LogError("Can't get client profile for clientId: {clientId}", clientId);
 
 			return id;
+		}
+
+		public static decimal? ConvertToAsset(string amountAsset, string targetAsset, decimal amount, IConvertIndexPricesClient converter, ILogger logger)
+		{
+			(ConvertIndexPrice price, decimal value) = converter.GetConvertIndexPriceByPairVolumeAsync(amountAsset, targetAsset, amount);
+
+			if (!string.IsNullOrWhiteSpace(price.Error))
+			{
+				logger.LogError("Can't convert {amount} {asset} to {target}, error: {error}", amount, amountAsset, targetAsset, price.Error);
+				return null;
+			}
+
+			return value;
 		}
 	}
 }
