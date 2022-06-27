@@ -20,7 +20,7 @@ namespace Service.AnalyticsUploader.Services
 		{
 			Uri uri = new UriBuilder(Program.Settings.AppsFlyerUriHost).Uri;
 			var client = new RestClient(uri);
-			RestRequest request = new RestRequest($"{Program.Settings.AppsFlyerUriPath}{applicationId}", Method.Post);
+			var request = new RestRequest($"{Program.Settings.AppsFlyerUriPath}{applicationId}", Method.Post);
 
 			request.AddHeader("authentication", Program.Settings.AppsFlyerDevKey);
 			request.AddHeader("Content-Type", "application/json");

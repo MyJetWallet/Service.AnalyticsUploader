@@ -1,4 +1,5 @@
 ﻿using Autofac;
+using MyJetWallet.Circle.Settings.Ioc;
 using MyJetWallet.Sdk.NoSql;
 using MyJetWallet.Sdk.ServiceBus;
 using MyNoSqlServer.DataReader;
@@ -44,6 +45,7 @@ namespace Service.AnalyticsUploader.Modules
 
 			builder.RegisterPersonalDataClient(Program.Settings.PersonalDataGrpcServiceUrl);
 			builder.RegisterConvertIndexPricesClient(myNosqlClient);
+			builder.RegisterCircleSettingsReader(myNosqlClient);
 
 			builder.RegisterType<AppsFlyerSender>().AsImplementedInterfaces();
 

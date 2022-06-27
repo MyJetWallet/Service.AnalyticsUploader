@@ -8,9 +8,7 @@ using Autofac;
 using MyJetWallet.Sdk.GrpcSchema;
 using MyJetWallet.Sdk.Service;
 using Prometheus;
-using Service.AnalyticsUploader.Grpc;
 using Service.AnalyticsUploader.Modules;
-using Service.AnalyticsUploader.Services;
 using SimpleTrading.ServiceStatusReporterConnector;
 
 namespace Service.AnalyticsUploader
@@ -29,9 +27,7 @@ namespace Service.AnalyticsUploader
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
-            {
                 app.UseDeveloperExceptionPage();
-            }
 
             app.UseRouting();
 
@@ -43,14 +39,9 @@ namespace Service.AnalyticsUploader
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapGrpcSchema<HelloService, IHelloService>();
-
                 endpoints.MapGrpcSchemaRegistry();
 
-                endpoints.MapGet("/", async context =>
-                {
-                    await context.Response.WriteAsync("Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
-                });
+                endpoints.MapGet("/", async context => await context.Response.WriteAsync("Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909"));
             });
         }
 

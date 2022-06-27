@@ -1,6 +1,5 @@
 ﻿using JetBrains.Annotations;
 using MyJetWallet.Sdk.Grpc;
-using Service.AnalyticsUploader.Grpc;
 
 namespace Service.AnalyticsUploader.Client
 {
@@ -10,7 +9,5 @@ namespace Service.AnalyticsUploader.Client
         public AnalyticsUploaderClientFactory(string grpcServiceUrl) : base(grpcServiceUrl)
         {
         }
-
-        public IHelloService GetHelloService() => CreateGrpcService<IHelloService>();
     }
 }
