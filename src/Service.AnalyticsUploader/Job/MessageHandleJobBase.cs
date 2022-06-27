@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using MyJetWallet.ServiceBus.SessionAudit.Models;
 using Service.AnalyticsUploader.Domain;
 using Service.ClientProfile.Grpc;
 using Service.ClientProfile.Grpc.Models.Requests;
 using Service.PersonalData.Grpc;
 using Service.PersonalData.Grpc.Contracts;
 using Service.PersonalData.Grpc.Models;
-using SimpleTrading.UserAgent;
 
 namespace Service.AnalyticsUploader.Job
 {
@@ -76,38 +76,38 @@ namespace Service.AnalyticsUploader.Job
 			return profile?.ExternalClientId;
 		}
 
-		protected string GetApplicationId(string userAgent = null)
+		protected string GetApplicationId(DeviceOperationSystem deviceOperationSystem)
 		{
-			string appId = null;
-
-			if (!string.IsNullOrWhiteSpace(userAgent))
+			switch (deviceOperationSystem)
 			{
-				string device = userAgent.GetDevice();
-				bool isMobileClient = userAgent.IsMobileClient();
-
-				if (isMobileClient && device == "Web-iOS")
-					appId = Program.Settings.AppsFlyerIosApplicationId;
-
-				else if (isMobileClient && device == "Web-Android")
-					appId = Program.Settings.AppsFlyerAndroidApplicationId;
+				case DeviceOperationSystem.Ios:
+					return Program.Settings.AppsFlyerIosApplicationId;
+				case DeviceOperationSystem.Android:
+					return Program.Settings.AppsFlyerAndroidApplicationId;
+				default:
+					return Program.Settings.AppsFlyerDefaultApplicationId;
 			}
-
-			appId ??= Program.Settings.AppsFlyerDefaultApplicationId;
-
-			if (appId == null)
-				_logger.LogWarning("Can't detect mobile os version for UserAgent: {agent}, analitics upload skipped.", userAgent);
-
-			return appId;
 		}
 
-		protected async Task SendMessage(string clientId, IAnaliticsEvent analiticsEvent, string userAgent = null, string ipAddress = null, string cuid = null)
+		protected async Task SendMessage(string clientId, IAnaliticsEvent analiticsEvent)
 		{
-			string applicationId = GetApplicationId(userAgent);
-
-			cuid ??= await GetExternalClientId(clientId);
-
-			if (applicationId == null || cuid == null)
+			ClientProfile.Domain.Models.ClientProfile clientProfile = await GetClientProfile(clientId);
+			if (clientProfile == null)
 				return;
+
+			string applicationId = GetApplicationId(clientProfile.DeviceOperationSystem);
+			if (applicationId == null)
+			{
+				_logger.LogWarning("Can't detect mobile os version for clientId: {clientId}, analitics upload skipped.", clientId);
+				return;
+			}
+
+			string cuid = clientProfile.ExternalClientId;
+			if (cuid == null)
+			{
+				_logger.LogWarning("Can't get externalId for clientId: {clientId}.", clientId);
+				return;
+			}
 
 			await _sender.SendMessage(applicationId, analiticsEvent, cuid);
 		}

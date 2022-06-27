@@ -57,8 +57,8 @@ namespace Service.AnalyticsUploader.Job
 					RegCountry = personalData.CountryOfRegistration,
 					UserId = cuid,
 					ReferralCode = clientProfile.ReferralCode,
-					DeviceId = GetApplicationId()
-				}, message.UserAgent, message.IpAddress, cuid: cuid);
+					DeviceId = GetApplicationId(clientProfile.DeviceOperationSystem)
+				});
 			}
 		}
 	}
