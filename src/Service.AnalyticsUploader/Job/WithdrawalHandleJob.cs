@@ -40,6 +40,10 @@ namespace Service.AnalyticsUploader.Job
 				if (destinationClientId == null)
 					continue;
 
+				string network = message.Blockchain;
+				string assetSymbol = message.AssetSymbol;
+				decimal amount = message.Amount;
+
 				IAnaliticsEvent analiticsEvent;
 
 				if (message.DestinationClientId == clientId)
@@ -47,16 +51,16 @@ namespace Service.AnalyticsUploader.Job
 					analiticsEvent = message.IsInternal
 						? (IAnaliticsEvent) new RecieveTransferFromInternalWalletEvent
 						{
-							Amount = message.Amount,
-							Currency = message.AssetSymbol,
+							Amount = amount,
+							Currency = assetSymbol,
 							Sender = destinationClientId,
-							Network = message.Blockchain //todo
+							Network = network
 						}
 						: new RecieveDepositFromExternalWalletEvent
 						{
-							Amount = message.Amount,
-							Currency = message.AssetSymbol,
-							Network = message.Blockchain //todo
+							Amount = amount,
+							Currency = assetSymbol,
+							Network = network
 						};
 				}
 				else
@@ -64,17 +68,17 @@ namespace Service.AnalyticsUploader.Job
 					analiticsEvent = message.IsInternal
 						? (IAnaliticsEvent) new SendTransferByWalletInternalEvent
 						{
-							Amount = message.Amount,
-							Currency = message.AssetSymbol,
+							Amount = amount,
+							Currency = assetSymbol,
 							Receiver = destinationClientId,
-							Network = message.Blockchain //todo
+							Network = network
 						}
 						: new SendTransferByWalletExternalEvent
 						{
-							Amount = message.Amount,
-							Currency = message.AssetSymbol,
+							Amount = amount,
+							Currency = assetSymbol,
 							Receiver = destinationClientId,
-							Network = message.Blockchain //todo
+							Network = network
 						};
 				}
 

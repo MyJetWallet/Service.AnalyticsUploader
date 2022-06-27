@@ -18,7 +18,8 @@ namespace Service.AnalyticsUploader.Job
 		public DepositHandleJob(ILogger<DepositHandleJob> logger,
 			ISubscriber<IReadOnlyList<Deposit>> subscriber,
 			IAppsFlyerSender sender,
-			IClientProfileService clientProfileService, IPersonalDataServiceGrpc personalDataServiceGrpc) :
+			IClientProfileService clientProfileService, 
+			IPersonalDataServiceGrpc personalDataServiceGrpc) :
 				base(logger, personalDataServiceGrpc, clientProfileService, sender)
 		{
 			_logger = logger;
@@ -36,28 +37,25 @@ namespace Service.AnalyticsUploader.Job
 
 				_logger.LogInformation("Handle Deposit message, clientId: {clientId}.", clientId);
 
-				IAnaliticsEvent analiticsEvent;
+				decimal amount = message.Amount;
+				string assetSymbol = message.AssetSymbol;
+				SimplexData simplexData = message.SimplexData;
 
-				if (message.SimplexData != null)
-				{
-					analiticsEvent = new BuyFromCardSimplexEvent
+				IAnaliticsEvent analiticsEvent = simplexData != null
+					? (IAnaliticsEvent) new BuyFromCardSimplexEvent
 					{
-						PaidAmount = message.SimplexData.FromAmount.ToString(CultureInfo.InvariantCulture),
-						PaidCurrency = message.SimplexData.FromCurrency,
-						ReceivedAmount = message.Amount.ToString(CultureInfo.InvariantCulture),
-						ReceivedCurrency = message.AssetSymbol,
+						PaidAmount = simplexData.FromAmount.ToString(CultureInfo.InvariantCulture),
+						PaidCurrency = simplexData.FromCurrency,
+						ReceivedAmount = amount.ToString(CultureInfo.InvariantCulture),
+						ReceivedCurrency = assetSymbol,
 						FirstTimeBuy = false //todo
-					};
-				}
-				else 
-				{
-					analiticsEvent = new RecieveDepositFromExternalWalletEvent
+					}
+					: new RecieveDepositFromExternalWalletEvent
 					{
-						Amount = message.Amount,
-						Currency = message.AssetSymbol,
+						Amount = amount,
+						Currency = assetSymbol,
 						Network = message.Network
 					};
-				}
 
 				await SendMessage(clientId, analiticsEvent);
 			}

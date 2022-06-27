@@ -34,6 +34,9 @@ namespace Service.AnalyticsUploader.Job
 		{
 			foreach (InvestOrder message in messages)
 			{
+				if (message.Status != OrderStatus.Executed)
+					continue;
+
 				string clientId = message.ClientId;
 
 				_logger.LogInformation("Handle InvestOrder message, clientId: {clientId}.", clientId);
@@ -48,7 +51,7 @@ namespace Service.AnalyticsUploader.Job
 					QuoteId = message.QuoteId,
 					AmountUsd = amountUsd.GetValueOrDefault(),
 					AutoTrade = true,
-					RecurringOrderId = message.Id,
+					RecurringOrderId = message.Id, //todo
 					Frequency = GetFrequency(message.ScheduleType)
 				};
 
@@ -70,14 +73,12 @@ namespace Service.AnalyticsUploader.Job
 		public static decimal? ConvertToAsset(string amountAsset, string targetAsset, decimal amount, IConvertIndexPricesClient converter, ILogger logger)
 		{
 			(ConvertIndexPrice price, decimal value) = converter.GetConvertIndexPriceByPairVolumeAsync(amountAsset, targetAsset, amount);
+			if (string.IsNullOrWhiteSpace(price.Error)) 
+				return value;
 
-			if (!string.IsNullOrWhiteSpace(price.Error))
-			{
-				logger.LogError("Can't convert {amount} {asset} to {target}, error: {error}", amount, amountAsset, targetAsset, price.Error);
-				return null;
-			}
+			logger.LogError("Can't convert {amount} {asset} to {target}, error: {error}", amount, amountAsset, targetAsset, price.Error);
 
-			return value;
+			return null;
 		}
 	}
 }

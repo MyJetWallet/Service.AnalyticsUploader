@@ -40,14 +40,17 @@ namespace Service.AnalyticsUploader.Job
 				if (destinationClientId == null)
 					continue;
 
+				decimal amount = message.Amount;
+				string assetSymbol = message.AssetSymbol;
+
 				IAnaliticsEvent analiticsEvent;
 
 				if (message.DestinationClientId != clientId)
 				{
 					analiticsEvent = new SendTransferByPhoneEvent
 					{
-						Amount = message.Amount,
-						Currency = message.AssetSymbol,
+						Amount = amount,
+						Currency = assetSymbol,
 						Receiver = destinationClientId
 					};
 				}
@@ -55,8 +58,8 @@ namespace Service.AnalyticsUploader.Job
 				{
 					analiticsEvent = new RecieveTransferByPhoneEvent
 					{
-						Amount = message.Amount,
-						Currency = message.AssetSymbol,
+						Amount = amount,
+						Currency = assetSymbol,
 						Sender = message.SenderPhoneNumber
 					};
 				}

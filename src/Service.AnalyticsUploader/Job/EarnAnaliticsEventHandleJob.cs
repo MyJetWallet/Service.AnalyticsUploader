@@ -31,29 +31,38 @@ namespace Service.AnalyticsUploader.Job
 			foreach (EarnAnaliticsEvent message in messages)
 			{
 				string clientId = message.ClientId;
+				string offerId = message.OfferId;
 
-				_logger.LogInformation("Handle EarnAnaliticsEvent message, clientId: {clientId}, offerId: {offerId}.", clientId, message.OfferId);
+				_logger.LogInformation("Handle EarnAnaliticsEvent message, clientId: {clientId}, offerId: {offerId}.", clientId, offerId);
+
+				decimal amount = message.Amount;
+				string asset = message.Asset;
+				decimal balance = message.Balance;
+				bool isHot = message.IsHot;
+				bool? isTopUp = message.IsTopUp;
+				decimal? apy = message.Apy;
+				decimal currentApy = message.CurrentApy;
 
 				IAnaliticsEvent analiticsEvent = message.ActionType == EarnAnaliticsEventType.Subscribe
 					? (IAnaliticsEvent) new EarnSubscribeEvent
 					{
-						OfferId = message.OfferId,
-						Amount = message.Amount,
-						Asset = message.Asset,
-						Balance = message.Balance,
-						IsHot = message.IsHot,
-						IsTopUp = message.IsTopUp,
-						Apy = message.Apy,
-						CurrentApy = message.CurrentApy
+						OfferId = offerId,
+						Amount = amount,
+						Asset = asset,
+						Balance = balance,
+						IsHot = isHot,
+						IsTopUp = isTopUp,
+						Apy = apy,
+						CurrentApy = currentApy
 					}
 					: new EarnUnsubscribeEvent
 					{
-						OfferId = message.OfferId,
-						Amount = message.Amount,
-						Asset = message.Asset,
-						Balance = message.Balance,
-						IsHot = message.IsHot,
-						CurrentApy = message.CurrentApy
+						OfferId = offerId,
+						Amount = amount,
+						Asset = asset,
+						Balance = balance,
+						IsHot = isHot,
+						CurrentApy = currentApy
 					};
 
 				await SendMessage(clientId, analiticsEvent);
