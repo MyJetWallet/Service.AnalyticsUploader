@@ -89,7 +89,7 @@ namespace Service.AnalyticsUploader.Job
 			}
 		}
 
-		protected async Task SendMessage(string clientId, IAnaliticsEvent analiticsEvent)
+		protected async Task SendMessage(string clientId, IAnaliticsEvent analiticsEvent, string ipAddress = null)
 		{
 			ClientProfile.Domain.Models.ClientProfile clientProfile = await GetClientProfile(clientId);
 			if (clientProfile == null)
@@ -109,7 +109,7 @@ namespace Service.AnalyticsUploader.Job
 				return;
 			}
 
-			await _sender.SendMessage(applicationId, analiticsEvent, cuid);
+			await _sender.SendMessage(applicationId, analiticsEvent, cuid, ipAddress);
 		}
 	}
 }

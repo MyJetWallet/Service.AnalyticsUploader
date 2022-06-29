@@ -58,7 +58,7 @@ namespace Service.AnalyticsUploader.Job
 					UserId = cuid,
 					ReferralCode = clientProfile.ReferralCode,
 					DeviceId = GetApplicationId(clientProfile.DeviceOperationSystem)
-				});
+				}, message.IpAddress);
 			}
 		}
 	}
