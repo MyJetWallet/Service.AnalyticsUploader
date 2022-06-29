@@ -36,53 +36,52 @@ namespace Service.AnalyticsUploader.Job
 
 				_logger.LogInformation("Handle Withdrawal message, clientId: {clientId}.", message.ClientId);
 
-				string destinationClientId = await GetExternalClientId(message.DestinationClientId);
-				if (destinationClientId == null)
+				string destinationClientId = message.DestinationClientId;
+				string destinationCuid = await GetExternalClientId(destinationClientId);
+				if (destinationCuid == null)
 					continue;
 
 				string network = message.Blockchain;
 				string assetSymbol = message.AssetSymbol;
 				decimal amount = message.Amount;
 
-				IAnaliticsEvent analiticsEvent;
-
-				if (message.DestinationClientId == clientId)
+				if (message.IsInternal)
 				{
-					analiticsEvent = message.IsInternal
-						? (IAnaliticsEvent) new RecieveTransferFromInternalWalletEvent
-						{
-							Amount = amount,
-							Currency = assetSymbol,
-							Sender = destinationClientId,
-							Network = network
-						}
-						: new RecieveDepositFromExternalWalletEvent
-						{
-							Amount = amount,
-							Currency = assetSymbol,
-							Network = network
-						};
+					await SendMessage(clientId, new SendTransferByWalletInternalEvent
+					{
+						Amount = amount,
+						Currency = assetSymbol,
+						Receiver = destinationCuid,
+						Network = network
+					});
+
+					await SendMessage(destinationCuid, new RecieveTransferFromInternalWalletEvent
+					{
+						Amount = amount,
+						Currency = assetSymbol,
+						Sender = clientId,
+						Network = network
+					});
 				}
 				else
 				{
-					analiticsEvent = message.IsInternal
-						? (IAnaliticsEvent) new SendTransferByWalletInternalEvent
+					IAnaliticsEvent analiticsEvent = destinationClientId == clientId
+						? (IAnaliticsEvent) new RecieveDepositFromExternalWalletEvent
 						{
 							Amount = amount,
 							Currency = assetSymbol,
-							Receiver = destinationClientId,
 							Network = network
 						}
 						: new SendTransferByWalletExternalEvent
 						{
 							Amount = amount,
 							Currency = assetSymbol,
-							Receiver = destinationClientId,
+							Receiver = destinationCuid,
 							Network = network
 						};
-				}
 
-				await SendMessage(clientId, analiticsEvent);
+					await SendMessage(clientId, analiticsEvent);
+				}
 			}
 		}
 	}

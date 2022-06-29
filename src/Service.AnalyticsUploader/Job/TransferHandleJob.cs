@@ -36,35 +36,26 @@ namespace Service.AnalyticsUploader.Job
 
 				_logger.LogInformation("Handle Transfer message, clientId: {clientId}.", message.ClientId);
 
-				string destinationClientId = await GetExternalClientId(message.DestinationClientId);
-				if (destinationClientId == null)
+				string destinationCuid = await GetExternalClientId(message.DestinationClientId);
+				if (destinationCuid == null)
 					continue;
 
 				decimal amount = message.Amount;
 				string assetSymbol = message.AssetSymbol;
 
-				IAnaliticsEvent analiticsEvent;
-
-				if (message.DestinationClientId != clientId)
+				await SendMessage(clientId, new SendTransferByPhoneEvent
 				{
-					analiticsEvent = new SendTransferByPhoneEvent
-					{
-						Amount = amount,
-						Currency = assetSymbol,
-						Receiver = destinationClientId
-					};
-				}
-				else
-				{
-					analiticsEvent = new RecieveTransferByPhoneEvent
-					{
-						Amount = amount,
-						Currency = assetSymbol,
-						Sender = message.SenderPhoneNumber
-					};
-				}
+					Amount = amount,
+					Currency = assetSymbol,
+					Receiver = destinationCuid
+				});
 
-				await SendMessage(clientId, analiticsEvent);
+				await SendMessage(destinationCuid, new RecieveTransferByPhoneEvent
+				{
+					Amount = amount,
+					Currency = assetSymbol,
+					Sender = clientId
+				});
 			}
 		}
 	}
