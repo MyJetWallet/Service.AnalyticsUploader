@@ -26,6 +26,9 @@ namespace Service.AnalyticsUploader.Settings
 		[YamlProperty("AnalyticsUploader.ClientProfileGrpcServiceUrl")]
 		public string ClientProfileGrpcServiceUrl { get; set; }
 
+		[YamlProperty("AnalyticsUploader.BitgoDepositDetectorGrpcServiceUrl")]
+		public string BitgoDepositDetectorGrpcServiceUrl  { get; set; }
+
 		[YamlProperty("AnalyticsUploader.AppsFlyerUriHost")]
 		public string AppsFlyerUriHost { get; set; }
 

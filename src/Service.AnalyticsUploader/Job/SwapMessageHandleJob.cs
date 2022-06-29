@@ -47,7 +47,7 @@ namespace Service.AnalyticsUploader.Job
 					TradeFee = message.FeeAmount,
 					SourceCurrency = message.AssetId1,
 					DestinationCurrency = message.AssetId2,
-					QuoteId = message.Id, //todo
+					QuoteId = message.Id,
 					AmountUsd = amountUsd.GetValueOrDefault(),
 					AutoTrade = false
 				};

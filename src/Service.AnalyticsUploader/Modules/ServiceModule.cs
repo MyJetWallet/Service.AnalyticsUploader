@@ -8,6 +8,7 @@ using MyServiceBus.TcpClient;
 using Service.AnalyticsUploader.Job;
 using Service.AnalyticsUploader.Services;
 using Service.AutoInvestManager.Domain.Models;
+using Service.Bitgo.DepositDetector.Client;
 using Service.Bitgo.DepositDetector.Domain.Models;
 using Service.Bitgo.WithdrawalProcessor.Domain.Models;
 using Service.Circle.Webhooks.Domain.Models;
@@ -41,8 +42,9 @@ namespace Service.AnalyticsUploader.Modules
 			tcpServiceBus.Start();
 
 			IMyNoSqlSubscriber myNosqlClient = builder.CreateNoSqlClient(Program.Settings.MyNoSqlReaderHostPort, Program.LogFactory);
-			builder.RegisterClientProfileClients(myNosqlClient, Program.Settings.ClientProfileGrpcServiceUrl);
 
+			builder.RegisterClientProfileClients(myNosqlClient, Program.Settings.ClientProfileGrpcServiceUrl);
+			builder.RegisterDepositServiceClient(Program.Settings.BitgoDepositDetectorGrpcServiceUrl);
 			builder.RegisterPersonalDataClient(Program.Settings.PersonalDataGrpcServiceUrl);
 			builder.RegisterConvertIndexPricesClient(myNosqlClient);
 			builder.RegisterCircleSettingsReader(myNosqlClient);

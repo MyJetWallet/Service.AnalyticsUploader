@@ -51,7 +51,7 @@ namespace Service.AnalyticsUploader.Job
 					QuoteId = message.QuoteId,
 					AmountUsd = amountUsd.GetValueOrDefault(),
 					AutoTrade = true,
-					RecurringOrderId = message.Id, //todo
+					RecurringOrderId = message.Id,
 					Frequency = GetFrequency(message.ScheduleType)
 				};
 
