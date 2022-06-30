@@ -39,7 +39,10 @@ namespace Service.AnalyticsUploader.Job
 				string destinationClientId = message.DestinationClientId;
 				string destinationCuid = await GetExternalClientId(destinationClientId);
 				if (destinationCuid == null)
+				{
+					_logger.LogError("DestinationCuid is null, skip uploading");
 					continue;
+				}
 
 				string network = message.Blockchain;
 				string assetSymbol = message.AssetSymbol;

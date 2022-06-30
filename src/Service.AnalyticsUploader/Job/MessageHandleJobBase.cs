@@ -71,6 +71,9 @@ namespace Service.AnalyticsUploader.Job
 
 		protected async Task<string> GetExternalClientId(string clientId)
 		{
+			if (clientId == null)
+				return null;
+
 			ClientProfile.Domain.Models.ClientProfile profile = await GetClientProfile(clientId);
 
 			return profile?.ExternalClientId;
