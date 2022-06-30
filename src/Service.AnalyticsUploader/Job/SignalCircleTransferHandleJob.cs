@@ -49,7 +49,7 @@ namespace Service.AnalyticsUploader.Job
 			foreach (SignalCircleTransfer message in messages)
 			{
 				PaymentInfo paymentInfo = message.PaymentInfo;
-				if (paymentInfo.Source.Type != "card" || !SuccessfullPaymentStatuses.Contains(paymentInfo.Status))
+				if (paymentInfo.Source.Type != "card" || !SuccessfullPaymentStatuses.Contains(paymentInfo.Status) || !paymentInfo.Captured)
 					continue;
 
 				string clientId = message.ClientId;
