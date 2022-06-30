@@ -36,20 +36,20 @@ namespace Service.AnalyticsUploader.Job
 
 				_logger.LogInformation("Handle Withdrawal message, clientId: {clientId}.", message.ClientId);
 
-				string destinationClientId = message.DestinationClientId;
-				string destinationCuid = await GetExternalClientId(destinationClientId);
-				if (destinationCuid == null)
-				{
-					_logger.LogError("DestinationCuid is null, skip uploading");
-					continue;
-				}
-
 				string network = message.Blockchain;
 				string assetSymbol = message.AssetSymbol;
 				decimal amount = message.Amount;
 
 				if (message.IsInternal)
 				{
+					string destinationClientId = message.DestinationClientId;
+					string destinationCuid = await GetExternalClientId(destinationClientId);
+					if (destinationCuid == null)
+					{
+						_logger.LogError("DestinationCuid is null, skip uploading");
+						continue;
+					}
+
 					await SendMessage(clientId, new SendTransferByWalletInternalEvent
 					{
 						Amount = amount,
@@ -68,22 +68,13 @@ namespace Service.AnalyticsUploader.Job
 				}
 				else
 				{
-					IAnaliticsEvent analiticsEvent = destinationClientId == clientId
-						? (IAnaliticsEvent) new RecieveDepositFromExternalWalletEvent
-						{
-							Amount = amount,
-							Currency = assetSymbol,
-							Network = network
-						}
-						: new SendTransferByWalletExternalEvent
-						{
-							Amount = amount,
-							Currency = assetSymbol,
-							Receiver = destinationCuid,
-							Network = network
-						};
-
-					await SendMessage(clientId, analiticsEvent);
+					await SendMessage(clientId, new SendTransferByWalletExternalEvent
+					{
+						Amount = amount,
+						Currency = assetSymbol,
+						Receiver = message.ToAddress,
+						Network = network
+					});
 				}
 			}
 		}

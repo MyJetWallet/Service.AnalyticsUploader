@@ -39,11 +39,11 @@ namespace Service.AnalyticsUploader.Job
 
 				string clientId = message.ClientId;
 
-				_logger.LogInformation("Handle Deposit message, clientId: {clientId}.", clientId);
-
 				IAnaliticsEvent analiticsEvent = GetEvent(message);
+				if (analiticsEvent == null)
+					return;
 
-				bool firtst = await GetFirstTimeBuy(message.ClientId);
+				_logger.LogInformation("Handle Deposit message, clientId: {clientId}.", clientId);
 
 				await SendMessage(clientId, analiticsEvent);
 			}
@@ -69,13 +69,15 @@ namespace Service.AnalyticsUploader.Job
 						ReceivedAmount = message.Amount,
 						ReceivedCurrency = message.AssetSymbol,
 					};
-				default:
+				case "Fireblocks":
 					return new RecieveDepositFromExternalWalletEvent
 					{
 						Amount = message.Amount,
 						Currency = message.AssetSymbol,
 						Network = message.Network
 					};
+				default:
+					return null;
 			}
 		}
 
