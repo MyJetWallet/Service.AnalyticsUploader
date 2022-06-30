@@ -99,7 +99,7 @@ namespace Service.AnalyticsUploader.Job
 				return;
 
 			string applicationId = GetApplicationId(clientProfile.DeviceOperationSystem);
-			if (applicationId == null)
+			if (string.IsNullOrWhiteSpace(applicationId))
 			{
 				_logger.LogWarning("Can't detect mobile os version for clientId: {clientId}, analitics upload skipped.", clientId);
 				return;
