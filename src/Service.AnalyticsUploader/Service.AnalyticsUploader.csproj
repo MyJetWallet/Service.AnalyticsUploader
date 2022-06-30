@@ -9,21 +9,19 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MyJetWallet.Circle" Version="1.11.4" />
+    <PackageReference Include="MyJetWallet.Circle" Version="1.11.5" />
     <PackageReference Include="MyJetWallet.Circle.Settings" Version="1.5.0" />
     <PackageReference Include="MyJetWallet.Service.AutoInvestManager.Client" Version="1.1.9" />
     <PackageReference Include="MyJetWallet.Service.Bitgo.DepositDetector.Client" Version="2.3.1" />
-    <PackageReference Include="MyJetWallet.Service.Bitgo.WithdrawalProcessor.Client" Version="2.12.0" />
-    <PackageReference Include="MyJetWallet.Service.Circle.Webhooks.Client" Version="2.3.2" />
+    <PackageReference Include="MyJetWallet.Service.Bitgo.WithdrawalProcessor.Client" Version="2.12.2" />
     <PackageReference Include="MyJetWallet.Service.ClientProfile.Client" Version="1.3.2" />
     <PackageReference Include="MyJetWallet.Service.HighYieldEngine.Client" Version="1.0.98" />
     <PackageReference Include="MyJetWallet.Service.InternalTransfer.Client" Version="1.1.8" />
-    <PackageReference Include="MyJetWallet.Service.Liquidity.Converter.Client" Version="1.8.5" />
+    <PackageReference Include="MyJetWallet.Service.Liquidity.Converter.Client" Version="1.8.6" />
     <PackageReference Include="MyJetWallet.Service.PersonalData.Client" Version="1.2.3" />
     <PackageReference Include="MyJetWallet.Service.Service.KYC.Client" Version="1.5.1" />
     <PackageReference Include="MyJetWallet.ServiceBus.SessionAudit" Version="1.0.2" />
     <PackageReference Include="RestSharp" Version="108.0.1" />
-    <PackageReference Include="SimpleTrading.ServiceStatusReporterConnector" Version="1.0.9" />
     <PackageReference Include="MyJetWallet.Sdk.ServiceBus" Version="2.2.4" />
     <PackageReference Include="MyJetWallet.Service.Registration.Client" Version="2.2.3" />
     <PackageReference Include="SimpleTrading.UserAgent" Version="1.0.10" />

@@ -11,7 +11,6 @@ using Service.AutoInvestManager.Domain.Models;
 using Service.Bitgo.DepositDetector.Client;
 using Service.Bitgo.DepositDetector.Domain.Models;
 using Service.Bitgo.WithdrawalProcessor.Domain.Models;
-using Service.Circle.Webhooks.Domain.Models;
 using Service.ClientProfile.Client;
 using Service.HighYieldEngine.Domain.Models.Messages;
 using Service.IndexPrices.Client;
@@ -38,7 +37,6 @@ namespace Service.AnalyticsUploader.Modules
 			builder.RegisterMyServiceBusSubscriberBatch<SwapMessage>(tcpServiceBus, SwapMessage.TopicName, QueueName, TopicQueueType.DeleteOnDisconnect);
 			builder.RegisterMyServiceBusSubscriberBatch<InvestOrder>(tcpServiceBus, InvestOrder.TopicName, QueueName, TopicQueueType.DeleteOnDisconnect);
 			builder.RegisterMyServiceBusSubscriberBatch<Deposit>(tcpServiceBus, Deposit.TopicName, QueueName, TopicQueueType.DeleteOnDisconnect);
-			builder.RegisterMyServiceBusSubscriberBatch<SignalCircleTransfer>(tcpServiceBus, SignalCircleTransfer.ServiceBusTopicName, QueueName, TopicQueueType.DeleteOnDisconnect);
 			tcpServiceBus.Start();
 
 			IMyNoSqlSubscriber myNosqlClient = builder.CreateNoSqlClient(Program.Settings.MyNoSqlReaderHostPort, Program.LogFactory);
@@ -59,7 +57,6 @@ namespace Service.AnalyticsUploader.Modules
 			builder.RegisterType<SwapMessageHandleJob>().AutoActivate().SingleInstance();
 			builder.RegisterType<InvestOrderHandleJob>().AutoActivate().SingleInstance();
 			builder.RegisterType<DepositHandleJob>().AutoActivate().SingleInstance();
-			builder.RegisterType<SignalCircleTransferHandleJob>().AutoActivate().SingleInstance();
 		}
 	}
 }

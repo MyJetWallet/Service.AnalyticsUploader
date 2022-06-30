@@ -8,13 +8,13 @@ namespace Service.AnalyticsUploader.Domain.Models.AnaliticsEvents
 		public abstract string EventName { get; }
 
 		[JsonPropertyName("paidAmount")]
-		public string PaidAmount { get; set; }
+		public decimal PaidAmount { get; set; }
 
 		[JsonPropertyName("paidCurrency")]
 		public string PaidCurrency { get; set; }
 
 		[JsonPropertyName("receivedAmount")]
-		public string ReceivedAmount { get; set; }
+		public decimal ReceivedAmount { get; set; }
 
 		[JsonPropertyName("receivedCurrency")]
 		public string ReceivedCurrency { get; set; }

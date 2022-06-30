@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Globalization;
 using System.Threading.Tasks;
 using DotNetCoreDecorators;
 using Microsoft.Extensions.Logging;
@@ -21,8 +20,8 @@ namespace Service.AnalyticsUploader.Job
 		public DepositHandleJob(ILogger<DepositHandleJob> logger,
 			ISubscriber<IReadOnlyList<Deposit>> subscriber,
 			IAppsFlyerSender sender,
-			IClientProfileService clientProfileService, 
-			IPersonalDataServiceGrpc personalDataServiceGrpc, 
+			IClientProfileService clientProfileService,
+			IPersonalDataServiceGrpc personalDataServiceGrpc,
 			IDepositService depositService) :
 				base(logger, personalDataServiceGrpc, clientProfileService, sender)
 		{
@@ -42,33 +41,47 @@ namespace Service.AnalyticsUploader.Job
 
 				_logger.LogInformation("Handle Deposit message, clientId: {clientId}.", clientId);
 
-				decimal amount = message.Amount;
-				string assetSymbol = message.AssetSymbol;
-				SimplexData simplexData = message.SimplexData;
+				IAnaliticsEvent analiticsEvent = GetEvent(message);
 
-				IAnaliticsEvent analiticsEvent = simplexData != null
-					? (IAnaliticsEvent) new BuyFromCardSimplexEvent
-					{
-						PaidAmount = simplexData.FromAmount.ToString(CultureInfo.InvariantCulture),
-						PaidCurrency = simplexData.FromCurrency,
-						ReceivedAmount = amount.ToString(CultureInfo.InvariantCulture),
-						ReceivedCurrency = assetSymbol,
-						FirstTimeBuy = await GetFirstTimeBuy(clientId)
-					}
-					: new RecieveDepositFromExternalWalletEvent
-					{
-						Amount = amount,
-						Currency = assetSymbol,
-						Network = message.Network
-					};
+				bool firtst = await GetFirstTimeBuy(message.ClientId);
 
 				await SendMessage(clientId, analiticsEvent);
 			}
 		}
 
+		private static IAnaliticsEvent GetEvent(Deposit message)
+		{
+			switch (message.Integration)
+			{
+				case "Simplex+Fireblocks":
+					return new BuyFromCardSimplexEvent
+					{
+						PaidAmount = message.SimplexData.FromAmount + message.SimplexData.Fee,
+						PaidCurrency = message.SimplexData.FromCurrency,
+						ReceivedAmount = message.Amount,
+						ReceivedCurrency = message.AssetSymbol,
+					};
+				case "CircleCard":
+					return new BuyFromCardCircleEvent
+					{
+						PaidAmount = message.IncomingAmount + message.IncomingFeeAmount,
+						PaidCurrency = message.AssetSymbol,
+						ReceivedAmount = message.Amount,
+						ReceivedCurrency = message.AssetSymbol,
+					};
+				default:
+					return new RecieveDepositFromExternalWalletEvent
+					{
+						Amount = message.Amount,
+						Currency = message.AssetSymbol,
+						Network = message.Network
+					};
+			}
+		}
+
 		private async Task<bool> GetFirstTimeBuy(string clientId)
 		{
-			GetDepositsCountResponse response = await _depositService.GetDepositsCount(new GetDepositsCountRequest()
+			GetDepositsCountResponse response = await _depositService.GetDepositsCount(new GetDepositsCountRequest
 			{
 				ClientId = clientId
 			});
