@@ -15,17 +15,17 @@ namespace Service.AnalyticsUploader.Job
 	public class SwapMessageHandleJob : MessageHandleJobBase
 	{
 		private readonly ILogger<SwapMessageHandleJob> _logger;
-		private readonly IConvertIndexPricesClient _pricesConverter;
+		private readonly IIndexPricesClient _converter;
 
 		public SwapMessageHandleJob(ILogger<SwapMessageHandleJob> logger,
 			ISubscriber<IReadOnlyList<SwapMessage>> subscriber,
 			IAppsFlyerSender sender,
 			IClientProfileService clientProfileService,
-			IPersonalDataServiceGrpc personalDataServiceGrpc, IConvertIndexPricesClient pricesConverter) :
+			IPersonalDataServiceGrpc personalDataServiceGrpc, IIndexPricesClient converter) :
 				base(logger, personalDataServiceGrpc, clientProfileService, sender)
 		{
 			_logger = logger;
-			_pricesConverter = pricesConverter;
+			_converter = converter;
 			subscriber.Subscribe(HandleEvent);
 		}
 
@@ -40,7 +40,9 @@ namespace Service.AnalyticsUploader.Job
 
 				_logger.LogInformation("Handle SwapMessage message, clientId: {clientId}.", clientId);
 
-				decimal? amountUsd = ConvertToAsset(message.AssetId2, UsdAsset, decimal.Parse(message.Volume2), _pricesConverter, _logger);
+				decimal? amountUsd = GetAmountUsdValue(message);
+				if (amountUsd == null)
+					continue;
 
 				IAnaliticsEvent analiticsEvent = new ExchangingAssetEvent
 				{
@@ -48,7 +50,7 @@ namespace Service.AnalyticsUploader.Job
 					SourceCurrency = message.AssetId1,
 					DestinationCurrency = message.AssetId2,
 					QuoteId = message.Id,
-					AmountUsd = amountUsd.GetValueOrDefault(),
+					AmountUsd = amountUsd.Value,
 					AutoTrade = false
 				};
 
@@ -56,17 +58,22 @@ namespace Service.AnalyticsUploader.Job
 			}
 		}
 
-		public static decimal? ConvertToAsset(string amountAsset, string targetAsset, decimal amount, IConvertIndexPricesClient converter, ILogger logger)
+		private decimal? GetAmountUsdValue(SwapMessage message)
 		{
-			(ConvertIndexPrice price, decimal value) = converter.GetConvertIndexPriceByPairVolumeAsync(amountAsset, targetAsset, amount);
+			string amountStr = message.Volume2;
 
-			if (!string.IsNullOrWhiteSpace(price.Error))
+			if (!decimal.TryParse(amountStr, out decimal amount))
 			{
-				logger.LogError("Can't convert {amount} {asset} to {target}, error: {error}", amount, amountAsset, targetAsset, price.Error);
+				_logger.LogError("Can't get decimal amount value from \"Volume2\", string \"{value}\", SwapMessage: {@message}.", amountStr, message);
 				return null;
 			}
 
-			return value;
+			if (amount == 0m)
+				return 0m;
+
+			(IndexPrice _, decimal usdValue) = _converter.GetIndexPriceByAssetVolumeAsync(message.AssetId2, amount);
+
+			return usdValue;
 		}
 	}
 }

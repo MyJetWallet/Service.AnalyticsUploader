@@ -15,8 +15,6 @@ namespace Service.AnalyticsUploader.Job
 {
 	public abstract class MessageHandleJobBase
 	{
-		protected const string UsdAsset = "USD";
-
 		private readonly ILogger _logger;
 		private readonly IPersonalDataServiceGrpc _personalDataServiceGrpc;
 		private readonly IClientProfileService _clientProfileService;
