@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
 using System.Threading.Tasks;
 using DotNetCoreDecorators;
 using Microsoft.Extensions.Logging;
@@ -62,7 +63,7 @@ namespace Service.AnalyticsUploader.Job
 		{
 			string amountStr = message.Volume2;
 
-			if (!decimal.TryParse(amountStr, out decimal amount))
+			if (!decimal.TryParse(amountStr, NumberStyles.AllowDecimalPoint, new NumberFormatInfo(), out decimal amount))
 			{
 				_logger.LogError("Can't get decimal amount value from \"Volume2\", string \"{value}\", SwapMessage: {@message}.", amountStr, message);
 				return null;
