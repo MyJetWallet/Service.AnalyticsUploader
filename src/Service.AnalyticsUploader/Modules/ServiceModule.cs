@@ -44,7 +44,7 @@ namespace Service.AnalyticsUploader.Modules
 			builder.RegisterClientProfileClients(myNosqlClient, Program.Settings.ClientProfileGrpcServiceUrl);
 			builder.RegisterDepositServiceClient(Program.Settings.BitgoDepositDetectorGrpcServiceUrl);
 			builder.RegisterPersonalDataClient(Program.Settings.PersonalDataGrpcServiceUrl);
-			builder.RegisterConvertIndexPricesClient(myNosqlClient);
+			builder.RegisterIndexPricesClient(myNosqlClient);
 			builder.RegisterCircleSettingsReader(myNosqlClient);
 
 			builder.RegisterType<AppsFlyerSender>().AsImplementedInterfaces();
