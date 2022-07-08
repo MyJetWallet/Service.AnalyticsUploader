@@ -33,18 +33,16 @@ namespace Service.AnalyticsUploader.Job
 
 		private async ValueTask HandleEvent(IReadOnlyList<KycProfileUpdatedMessage> messages)
 		{
-			List<string> clientIds = messages.Select(message => message.ClientId).ToList();
+			KycProfileUpdatedMessage[] allowedMessages = messages.Where(KycPassed).ToArray();
+			if (!allowedMessages.Any())
+				return;
 
+			List<string> clientIds = allowedMessages.Select(message => message.ClientId).ToList();
+			
 			PersonalDataGrpcModel[] personalDataItems = await GetPersonalData(clientIds);
 
-			foreach (KycProfileUpdatedMessage message in messages)
+			foreach (KycProfileUpdatedMessage message in allowedMessages)
 			{
-				KycProfile newProfile = message.NewProfile;
-				if (newProfile.ActiveVerificationStatus != VerificationStatus.Finished
-					|| newProfile.ManualReviewStatus == ManualReviewStatus.ReviewedAndBlocked
-					|| newProfile.ManualReviewStatus == ManualReviewStatus.NotReviewed)
-					continue;
-
 				string clientId = message.ClientId;
 
 				_logger.LogInformation("Handle KycProfileUpdatedMessage message, clientId: {clientId}.", clientId);
@@ -58,13 +56,23 @@ namespace Service.AnalyticsUploader.Job
 
 				IAnaliticsEvent analiticsEvent = new SuccessfulKycPassingEvent
 				{
-					ResCountry = newProfile.Country,
+					ResCountry = message.NewProfile.Country,
 					Age = CalculateAge(personalData.DateOfBirth),
 					Sex = personalData.Sex switch {PersonalDataSexEnum.Male => "male",PersonalDataSexEnum.Female => "female",_ => null}
 				};
 
 				await SendMessage(clientId, analiticsEvent);
 			}
+		}
+
+		private static bool KycPassed(KycProfileUpdatedMessage message)
+		{
+			return message.OldProfile.DepositStatus != KycOperationStatus.Allowed &&
+					message.NewProfile.DepositStatus == KycOperationStatus.Allowed ||
+					message.OldProfile.WithdrawalStatus != KycOperationStatus.Allowed &&
+					message.NewProfile.WithdrawalStatus == KycOperationStatus.Allowed ||
+					message.OldProfile.TradeStatus != KycOperationStatus.Allowed &&
+					message.NewProfile.TradeStatus == KycOperationStatus.Allowed;
 		}
 
 		private static int? CalculateAge(DateTime? birthDate)
