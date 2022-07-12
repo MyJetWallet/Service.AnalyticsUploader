@@ -125,9 +125,17 @@ namespace Service.AnalyticsUploader.Job
 
 		protected async Task SendAmplitudeRevenueMessage(string clientId, RevenueEvent revenueEvent)
 		{
+			decimal revenueVolumeInUsd = revenueEvent.RevenueVolumeInUsd;
+			if (revenueVolumeInUsd == 0m)
+			{
+				_logger.LogWarning("Amplitude message \"{name}\" revenue value if zero. Skip uploading to amplitude.", revenueEvent.GetEventName());
+
+				return;
+			}
+
 			string cuid = await GetExternalClientId(clientId);
 
-			await _amplitudeSender.SendMessage(revenueEvent, cuid, revenueEvent.RevenueVolumeInUsd, revenueEvent.RevenueType);
+			await _amplitudeSender.SendMessage(revenueEvent, cuid, revenueVolumeInUsd, revenueEvent.RevenueType);
 		}
 
 		protected decimal? GetAmountUsdValue(string amountStr, string asset)
