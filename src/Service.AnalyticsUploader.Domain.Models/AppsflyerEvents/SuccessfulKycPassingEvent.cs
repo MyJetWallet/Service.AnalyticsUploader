@@ -1,19 +1,18 @@
-﻿using System.Text.Json.Serialization;
+﻿using Newtonsoft.Json;
 
 namespace Service.AnalyticsUploader.Domain.Models.AppsflyerEvents
 {
 	public class SuccessfulKycPassingEvent : IAnaliticsEvent
 	{
-		[JsonIgnore]
-		public string EventName => "af_successful_kyc_passing";
+		public string GetEventName() => "af_successful_kyc_passing";
 
-		[JsonPropertyName("res_country")]
+		[JsonProperty("res_country")]
 		public string ResCountry { get; set; }
 
-		[JsonPropertyName("age")]
+		[JsonProperty("age")]
 		public int? Age { get; set; }
 
-		[JsonPropertyName("gender")]
+		[JsonProperty("gender")]
 		public string Sex { get; set; }
 	}
 }

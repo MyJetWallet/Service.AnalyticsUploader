@@ -1,37 +1,34 @@
-﻿using System.Text.Json.Serialization;
+﻿using Newtonsoft.Json;
 
 namespace Service.AnalyticsUploader.Domain.Models.AppsflyerEvents
 {
 	public abstract class BuyFromCardEvent : IAnaliticsEvent
 	{
-		[JsonIgnore]
-		public abstract string EventName { get; }
+		public abstract string GetEventName();
 
-		[JsonPropertyName("paidAmount")]
+		[JsonProperty("paidAmount")]
 		public decimal PaidAmount { get; set; }
 
-		[JsonPropertyName("paidCurrency")]
+		[JsonProperty("paidCurrency")]
 		public string PaidCurrency { get; set; }
 
-		[JsonPropertyName("receivedAmount")]
+		[JsonProperty("receivedAmount")]
 		public decimal ReceivedAmount { get; set; }
 
-		[JsonPropertyName("receivedCurrency")]
+		[JsonProperty("receivedCurrency")]
 		public string ReceivedCurrency { get; set; }
 
-		[JsonPropertyName("firstTimeBuy")]
+		[JsonProperty("firstTimeBuy")]
 		public bool FirstTimeBuy { get; set; }
 	}
 
 	public class BuyFromCardSimplexEvent : BuyFromCardEvent
 	{
-		[JsonIgnore]
-		public override string EventName => "af_buy_from_card_simplex";
+		public override string GetEventName() => "af_buy_from_card_simplex";
 	}
 
 	public class BuyFromCardCircleEvent : BuyFromCardEvent
 	{
-		[JsonIgnore]
-		public override string EventName => "af_buy_from_card_circle";
+		public override string GetEventName() => "af_buy_from_card_circle";
 	}
 }

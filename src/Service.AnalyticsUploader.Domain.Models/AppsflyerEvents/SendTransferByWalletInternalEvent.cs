@@ -1,22 +1,21 @@
-﻿using System.Text.Json.Serialization;
+﻿using Newtonsoft.Json;
 
 namespace Service.AnalyticsUploader.Domain.Models.AppsflyerEvents
 {
 	public class SendTransferByWalletInternalEvent : IAnaliticsEvent
 	{
-		[JsonIgnore]
-		public string EventName => "af_send_transfer_by_wallet_internal";
+		public string GetEventName() => "af_send_transfer_by_wallet_internal";
 
-		[JsonPropertyName("amount")]
+		[JsonProperty("amount")]
 		public decimal Amount { get; set; }
 
-		[JsonPropertyName("currency")]
+		[JsonProperty("currency")]
 		public string Currency { get; set; }
 
-		[JsonPropertyName("receiver")]
+		[JsonProperty("receiver")]
 		public string Receiver { get; set; }
 
-		[JsonPropertyName("network")]
+		[JsonProperty("network")]
 		public string Network { get; set; }
 	}
 }

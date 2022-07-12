@@ -1,19 +1,18 @@
-﻿using System.Text.Json.Serialization;
+﻿using Newtonsoft.Json;
 
 namespace Service.AnalyticsUploader.Domain.Models.AppsflyerEvents
 {
 	public class FirstTimeBuyEvent : IAnaliticsEvent
 	{
-		[JsonIgnore]
-		public string EventName => "af_first_time_buy_event";
+		public string GetEventName() => "af_first_time_buy_event";
 
-		[JsonPropertyName("amount")]
+		[JsonProperty("amount")]
 		public decimal Amount { get; set; }
 
-		[JsonPropertyName("currency")]
+		[JsonProperty("currency")]
 		public string Currency { get; set; }
 
-		[JsonPropertyName("method")]
+		[JsonProperty("method")]
 		public string Method { get; set; }
 	}
 }

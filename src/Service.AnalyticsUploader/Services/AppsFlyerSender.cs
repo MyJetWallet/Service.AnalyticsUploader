@@ -29,25 +29,27 @@ namespace Service.AnalyticsUploader.Services
 			{
 				appsflyer_id = Guid.NewGuid().ToString("N"),
 				customer_user_id = externalClientId,
-				eventName = analiticsEvent.EventName,
+				eventName = analiticsEvent.GetEventName(),
 				ip = ipAddress,
 				eventTime = DateTime.UtcNow,
 				bundleIdentifier = applicationId,
 				eventValue = JsonConvert.SerializeObject(analiticsEvent)
 			};
 
-			_logger.LogDebug("Send AppsFlyer message: {@message}, to: {to}", body, client.Options.BaseUrl);
+			string bodyStr = JsonConvert.SerializeObject(body);
+			_logger.LogDebug("Send AppsFlyer message: {@message}, to: {to}", bodyStr, client.Options.BaseUrl);
+			request.AddBody(bodyStr);
 
-			request.AddBody(JsonConvert.SerializeObject(body));
-
-			_logger.LogInformation("Send AppsFlyer \"{event}\" event with CUID: {cuid} to app \"{app}\".", analiticsEvent.EventName, externalClientId, applicationId);
-
+			_logger.LogInformation("Send AppsFlyer \"{event}\" event with CUID: {cuid} to app \"{app}\".", analiticsEvent.GetEventName(), externalClientId, applicationId);
 			RestResponse response = await client.ExecuteAsync(request);
+
+			if (response.IsSuccessful)
+				return;
 
 			if (!response.IsSuccessful || response.ErrorException != null)
 				_logger.LogError(response.ErrorException, response.ErrorMessage, body);
 
-			else if (!(response.Content ?? string.Empty).Equals("ok", StringComparison.InvariantCultureIgnoreCase))
+			if ((response.Content ?? string.Empty).Length > 0)
 				_logger.LogError("Can't send event to AppsFlyer, respose: {response}", response.Content);
 		}
 	}

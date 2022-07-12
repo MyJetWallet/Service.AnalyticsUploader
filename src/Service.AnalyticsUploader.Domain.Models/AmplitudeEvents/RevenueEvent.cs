@@ -1,22 +1,21 @@
-﻿using System.Text.Json.Serialization;
+﻿using Newtonsoft.Json;
 
 namespace Service.AnalyticsUploader.Domain.Models.AmplitudeEvents
 {
 	public class RevenueEvent : IAnaliticsEvent
 	{
-		[JsonIgnore]
-		public string EventName => "User brought revenue";
+		public string GetEventName() => "User brought revenue";
 
-		[JsonPropertyName("Revenue Asset")]
+		[JsonProperty("Revenue Asset")]
 		public string RevenueAsset { get; set; }
 
-		[JsonPropertyName("Revenue Volume In Asset")]
+		[JsonProperty("Revenue Volume In Asset")]
 		public decimal RevenueVolumeInAsset { get; set; }
 
-		[JsonPropertyName("Revenue Volume In Usd")]
+		[JsonProperty("Revenue Volume In Usd")]
 		public decimal RevenueVolumeInUsd { get; set; }
 
-		[JsonPropertyName("Revenue Type")]
+		[JsonProperty("Revenue Type")]
 		public string RevenueType { get; set; }
 	}
 }

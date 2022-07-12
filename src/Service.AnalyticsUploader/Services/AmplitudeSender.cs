@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using RestSharp;
 using Service.AnalyticsUploader.Domain;
-using System.Text.Json;
 
 namespace Service.AnalyticsUploader.Services
 {
@@ -33,7 +32,7 @@ namespace Service.AnalyticsUploader.Services
 					new EventDto
 					{
 						UserId = externalClientId,
-						EventType = analiticsEvent.EventName,
+						EventType = analiticsEvent.GetEventName(),
 						Time = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
 						EventProperties = analiticsEvent
 					}
@@ -43,19 +42,18 @@ namespace Service.AnalyticsUploader.Services
 				RevenueType = revenueType
 			};
 
-			_logger.LogDebug("Send Amplitude message: {@message}, to: {to}", body, client.Options.BaseUrl);
+			string bodyStr = JsonConvert.SerializeObject(body);
+			_logger.LogDebug("Send Amplitude message: {@message}, to: {to}", bodyStr, client.Options.BaseUrl);
+			request.AddBody(bodyStr);
 
-			request.AddBody(JsonSerializer.Serialize(body));
-
-			_logger.LogInformation("Send Amplitude \"{event}\" event with CUID: {cuid}.", analiticsEvent.EventName, externalClientId);
-
+			_logger.LogInformation("Send Amplitude \"{event}\" event with CUID: {cuid}.", analiticsEvent.GetEventName(), externalClientId);
 			RestResponse response = await client.ExecuteAsync(request);
 
 			if (response.IsSuccessful)
 				return;
 
 			if (response.ErrorException != null)
-				_logger.LogError(response.ErrorException, response.ErrorMessage, body);
+				_logger.LogError(response.ErrorException, response.ErrorMessage, bodyStr);
 
 			if ((response.Content ?? string.Empty).Length > 0)
 				_logger.LogError("Can't send event to Amplitude, respose: {response}", response.Content);
@@ -63,34 +61,34 @@ namespace Service.AnalyticsUploader.Services
 
 		private class PacketDto
 		{
-			[JsonPropertyName("api_key")]
+			[JsonProperty("api_key")]
 			public string ApiKey { get; set; }
 
-			[JsonPropertyName("insert_id")]
+			[JsonProperty("insert_id")]
 			public string InsertId { get; set; }
 
-			[JsonPropertyName("revenue")]
+			[JsonProperty("revenue")]
 			public decimal? Revenue { get; set; }
 
-			[JsonPropertyName("revenueType")]
+			[JsonProperty("revenueType")]
 			public string RevenueType { get; set; }
 
-			[JsonPropertyName("events")]
+			[JsonProperty("events")]
 			public EventDto[] Events { get; set; }
 		}
 
 		private class EventDto
 		{
-			[JsonPropertyName("user_id")]
+			[JsonProperty("user_id")]
 			public string UserId { get; set; }
 
-			[JsonPropertyName("event_type")]
+			[JsonProperty("event_type")]
 			public string EventType { get; set; }
 
-			[JsonPropertyName("time")]
+			[JsonProperty("time")]
 			public long Time { get; set; }
 
-			[JsonPropertyName("event_properties")]
+			[JsonProperty("event_properties")]
 			public IAnaliticsEvent EventProperties { get; set; }
 		}
 	}

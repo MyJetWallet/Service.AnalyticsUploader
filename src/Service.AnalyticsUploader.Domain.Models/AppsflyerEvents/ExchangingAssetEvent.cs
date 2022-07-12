@@ -1,34 +1,33 @@
-﻿using System.Text.Json.Serialization;
+﻿using Newtonsoft.Json;
 
 namespace Service.AnalyticsUploader.Domain.Models.AppsflyerEvents
 {
 	public class ExchangingAssetEvent : IAnaliticsEvent
 	{
-		[JsonIgnore]
-		public string EventName => "af_exchanging_asset";
+		public string GetEventName() => "af_exchanging_asset";
 
-		[JsonPropertyName("frequency")]
+		[JsonProperty("frequency")]
 		public string Frequency { get; set; }
 
-		[JsonPropertyName("autoTrade")]
+		[JsonProperty("autoTrade")]
 		public bool AutoTrade { get; set; }
 
-		[JsonPropertyName("quoteId")]
+		[JsonProperty("quoteId")]
 		public string QuoteId { get; set; }
 
-		[JsonPropertyName("recurringOrderId")]
+		[JsonProperty("recurringOrderId")]
 		public string RecurringOrderId { get; set; }
 
-		[JsonPropertyName("sourceCurrency")]
+		[JsonProperty("sourceCurrency")]
 		public string SourceCurrency { get; set; }
 
-		[JsonPropertyName("destinationCurrency")]
+		[JsonProperty("destinationCurrency")]
 		public string DestinationCurrency { get; set; }
 
-		[JsonPropertyName("amountUsd")]
+		[JsonProperty("amountUsd")]
 		public decimal AmountUsd { get; set; }
 
-		[JsonPropertyName("tradeFee")]
+		[JsonProperty("tradeFee")]
 		public decimal TradeFee { get; set; }
 	}
 }

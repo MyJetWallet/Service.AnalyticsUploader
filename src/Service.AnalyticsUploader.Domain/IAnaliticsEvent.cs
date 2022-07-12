@@ -2,6 +2,6 @@
 {
 	public interface IAnaliticsEvent
 	{
-		string EventName { get; }
+		string GetEventName();
 	}
 }

@@ -1,28 +1,27 @@
-﻿using System.Text.Json.Serialization;
+﻿using Newtonsoft.Json;
 
 namespace Service.AnalyticsUploader.Domain.Models.AppsflyerEvents
 {
 	public class EarnUnsubscribeEvent : IAnaliticsEvent
 	{
-		[JsonIgnore]
-		public string EventName => "af_earn_unsubscribe";
+		public string GetEventName() => "af_earn_unsubscribe";
 
-		[JsonPropertyName("isHot")]
+		[JsonProperty("isHot")]
 		public bool IsHot { get; set; }
 
-		[JsonPropertyName("amount")]
+		[JsonProperty("amount")]
 		public decimal Amount { get; set; }
 
-		[JsonPropertyName("offerId")]
+		[JsonProperty("offerId")]
 		public string OfferId { get; set; }
 
-		[JsonPropertyName("currency")]
+		[JsonProperty("currency")]
 		public string Asset { get; set; }
 
-		[JsonPropertyName("apyPerOffer")]
+		[JsonProperty("apyPerOffer")]
 		public decimal CurrentApy { get; set; }
 
-		[JsonPropertyName("offerBalance")]
+		[JsonProperty("offerBalance")]
 		public decimal Balance { get; set; }
 	}
 }

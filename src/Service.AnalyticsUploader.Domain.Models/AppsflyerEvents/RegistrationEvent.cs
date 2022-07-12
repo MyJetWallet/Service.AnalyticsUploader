@@ -1,22 +1,21 @@
-﻿using System.Text.Json.Serialization;
+﻿using Newtonsoft.Json;
 
 namespace Service.AnalyticsUploader.Domain.Models.AppsflyerEvents
 {
 	public class RegistrationEvent : IAnaliticsEvent
 	{
-		[JsonIgnore]
-		public string EventName => "af_complete_registration";
+		public string GetEventName() => "af_complete_registration";
 
-		[JsonPropertyName("deviceId")]
+		[JsonProperty("deviceId")]
 		public string DeviceId { get; set; }
 
-		[JsonPropertyName("userId")]
+		[JsonProperty("userId")]
 		public string UserId { get; set; }
 
-		[JsonPropertyName("regCountry")]
+		[JsonProperty("regCountry")]
 		public string RegCountry { get; set; }
 
-		[JsonPropertyName("referralCode")]
+		[JsonProperty("referralCode")]
 		public string ReferralCode { get; set; }
 	}
 }
