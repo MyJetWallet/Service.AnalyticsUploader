@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -24,22 +25,22 @@ namespace Service.AnalyticsUploader.Services
 
 			request.AddHeader("Content-Type", "application/json");
 
-			object body = new
+			object body = new PacketDto
 			{
-				api_key = Program.Settings.AmplitudeApiKey,
-				events = new object[]
+				ApiKey = Program.Settings.AmplitudeApiKey,
+				Events = new[]
 				{
-					new
+					new EventDto
 					{
-						user_id = externalClientId,
-						event_type = analiticsEvent.EventName,
-						time = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-						event_properties = analiticsEvent
+						UserId = externalClientId,
+						EventType = analiticsEvent.EventName,
+						Time = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+						EventProperties = analiticsEvent
 					}
 				},
-				insert_id = Guid.NewGuid().ToString("N"), 
-				revenue,
-				revenueType
+				InsertId = Guid.NewGuid().ToString("N"),
+				Revenue = revenue,
+				RevenueType = revenueType
 			};
 
 			_logger.LogDebug("Send Amplitude message: {@message}, to: {to}", body, client.Options.BaseUrl);
@@ -50,11 +51,47 @@ namespace Service.AnalyticsUploader.Services
 
 			RestResponse response = await client.ExecuteAsync(request);
 
-			if (!response.IsSuccessful || response.ErrorException != null)
+			if (response.IsSuccessful)
+				return;
+
+			if (response.ErrorException != null)
 				_logger.LogError(response.ErrorException, response.ErrorMessage, body);
 
-			else if (!(response.Content ?? string.Empty).Equals("ok", StringComparison.InvariantCultureIgnoreCase))
+			if ((response.Content ?? string.Empty).Length > 0)
 				_logger.LogError("Can't send event to Amplitude, respose: {response}", response.Content);
+		}
+
+		private class PacketDto
+		{
+			[JsonPropertyName("api_key")]
+			public string ApiKey { get; set; }
+
+			[JsonPropertyName("insert_id")]
+			public string InsertId { get; set; }
+
+			[JsonPropertyName("revenue")]
+			public decimal? Revenue { get; set; }
+
+			[JsonPropertyName("revenueType")]
+			public string RevenueType { get; set; }
+
+			[JsonPropertyName("events")]
+			public EventDto[] Events { get; set; }
+		}
+
+		private class EventDto
+		{
+			[JsonPropertyName("user_id")]
+			public string UserId { get; set; }
+
+			[JsonPropertyName("event_type")]
+			public string EventType { get; set; }
+
+			[JsonPropertyName("time")]
+			public long Time { get; set; }
+
+			[JsonPropertyName("event_properties")]
+			public IAnaliticsEvent EventProperties { get; set; }
 		}
 	}
 }
