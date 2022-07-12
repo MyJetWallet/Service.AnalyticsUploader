@@ -2,9 +2,9 @@
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using RestSharp;
 using Service.AnalyticsUploader.Domain;
+using System.Text.Json;
 
 namespace Service.AnalyticsUploader.Services
 {
@@ -45,7 +45,7 @@ namespace Service.AnalyticsUploader.Services
 
 			_logger.LogDebug("Send Amplitude message: {@message}, to: {to}", body, client.Options.BaseUrl);
 
-			request.AddBody(JsonConvert.SerializeObject(body));
+			request.AddBody(JsonSerializer.Serialize(body));
 
 			_logger.LogInformation("Send Amplitude \"{event}\" event with CUID: {cuid}.", analiticsEvent.EventName, externalClientId);
 
