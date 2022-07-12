@@ -34,7 +34,7 @@ namespace Service.AnalyticsUploader.Services
 						user_id = externalClientId,
 						event_type = analiticsEvent.EventName,
 						time = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-						event_properties = JsonConvert.SerializeObject(analiticsEvent)
+						event_properties = analiticsEvent
 					}
 				},
 				insert_id = Guid.NewGuid().ToString("N"), 
