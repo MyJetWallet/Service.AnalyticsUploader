@@ -4,8 +4,9 @@ using System.Threading.Tasks;
 using DotNetCoreDecorators;
 using Microsoft.Extensions.Logging;
 using Service.AnalyticsUploader.Domain;
-using Service.AnalyticsUploader.Domain.Models.AnaliticsEvents;
+using Service.AnalyticsUploader.Domain.Models.AppsflyerEvents;
 using Service.ClientProfile.Grpc;
+using Service.IndexPrices.Client;
 using Service.PersonalData.Grpc;
 using Service.PersonalData.Grpc.Models;
 using Service.Registration.Domain.Models;
@@ -19,9 +20,11 @@ namespace Service.AnalyticsUploader.Job
 		public ClientRegisterMessageHandleJob(ILogger<ClientRegisterMessageHandleJob> logger,
 			ISubscriber<IReadOnlyList<ClientRegisterMessage>> registerSubscriber,
 			IPersonalDataServiceGrpc personalDataServiceGrpc,
-			IAppsFlyerSender sender,
-			IClientProfileService clientProfileService) :
-				base(logger, personalDataServiceGrpc, clientProfileService, sender)
+			IAppsFlyerSender appsFlyerSender,
+			IClientProfileService clientProfileService,
+			IIndexPricesClient converter,
+			IAmplitudeSender amplitudeSender) :
+				base(logger, personalDataServiceGrpc, clientProfileService, appsFlyerSender, amplitudeSender, converter)
 		{
 			_logger = logger;
 			registerSubscriber.Subscribe(HandleEvent);
@@ -52,7 +55,7 @@ namespace Service.AnalyticsUploader.Job
 
 				string cuid = clientProfile.ExternalClientId;
 
-				await SendMessage(clientId, new RegistrationEvent
+				await SendAppsflyerMessage(clientId, new RegistrationEvent
 				{
 					RegCountry = personalData.CountryOfRegistration,
 					UserId = cuid,

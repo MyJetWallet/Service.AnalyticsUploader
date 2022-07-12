@@ -9,4 +9,9 @@
     <ProjectReference Include="..\Service.AnalyticsUploader.Domain\Service.AnalyticsUploader.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="AmplitudeEvents\" />
+    <Folder Include="Constants\" />
+  </ItemGroup>
+
 </Project>

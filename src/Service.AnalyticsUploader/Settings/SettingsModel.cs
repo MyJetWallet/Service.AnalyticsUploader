@@ -46,5 +46,14 @@ namespace Service.AnalyticsUploader.Settings
 
 		[YamlProperty("AnalyticsUploader.AppsFlyerDevKey")]
 		public string AppsFlyerDevKey { get; set; }
+
+		[YamlProperty("AnalyticsUploader.AmplitudeApiKey")]
+		public string AmplitudeApiKey { get; set; }
+
+		[YamlProperty("AnalyticsUploader.AmplitudeUriHost")]
+		public string AmplitudeUriHost { get; set; }
+
+		[YamlProperty("AnalyticsUploader.AmplitudeUriPath")]
+		public string AmplitudeUriPath { get; set; }
 	}
 }

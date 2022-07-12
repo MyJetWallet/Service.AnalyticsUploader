@@ -1,13 +1,13 @@
 ﻿using System.Collections.Generic;
-using System.Globalization;
 using System.Threading.Tasks;
 using DotNetCoreDecorators;
 using Microsoft.Extensions.Logging;
 using Service.AnalyticsUploader.Domain;
-using Service.AnalyticsUploader.Domain.Models.AnaliticsEvents;
+using Service.AnalyticsUploader.Domain.Models.AmplitudeEvents;
+using Service.AnalyticsUploader.Domain.Models.AppsflyerEvents;
+using Service.AnalyticsUploader.Domain.Models.Constants;
 using Service.ClientProfile.Grpc;
 using Service.IndexPrices.Client;
-using Service.IndexPrices.Domain.Models;
 using Service.Liquidity.Converter.Domain.Models;
 using Service.PersonalData.Grpc;
 
@@ -15,18 +15,19 @@ namespace Service.AnalyticsUploader.Job
 {
 	public class SwapMessageHandleJob : MessageHandleJobBase
 	{
+
 		private readonly ILogger<SwapMessageHandleJob> _logger;
-		private readonly IIndexPricesClient _converter;
 
 		public SwapMessageHandleJob(ILogger<SwapMessageHandleJob> logger,
 			ISubscriber<IReadOnlyList<SwapMessage>> subscriber,
-			IAppsFlyerSender sender,
+			IAppsFlyerSender appsFlyerSender,
 			IClientProfileService clientProfileService,
-			IPersonalDataServiceGrpc personalDataServiceGrpc, IIndexPricesClient converter) :
-				base(logger, personalDataServiceGrpc, clientProfileService, sender)
+			IPersonalDataServiceGrpc personalDataServiceGrpc,
+			IIndexPricesClient converter,
+			IAmplitudeSender amplitudeSender) :
+				base(logger, personalDataServiceGrpc, clientProfileService, appsFlyerSender, amplitudeSender, converter)
 		{
 			_logger = logger;
-			_converter = converter;
 			subscriber.Subscribe(HandleEvent);
 		}
 
@@ -41,40 +42,51 @@ namespace Service.AnalyticsUploader.Job
 
 				_logger.LogInformation("Handle SwapMessage message, clientId: {clientId}.", clientId);
 
-				decimal? amountUsd = GetAmountUsdValue(message);
-				if (amountUsd == null)
-					continue;
-
-				IAnaliticsEvent analiticsEvent = new ExchangingAssetEvent
-				{
-					TradeFee = message.FeeAmount,
-					SourceCurrency = message.AssetId1,
-					DestinationCurrency = message.AssetId2,
-					QuoteId = message.Id,
-					AmountUsd = amountUsd.Value,
-					AutoTrade = false
-				};
-
-				await SendMessage(clientId, analiticsEvent);
+				await ToAppsflyer(message, clientId);
+				await ToAmplitude(message, clientId);
 			}
 		}
 
-		private decimal? GetAmountUsdValue(SwapMessage message)
+		private async Task ToAppsflyer(SwapMessage message, string clientId)
 		{
-			string amountStr = message.Volume2;
+			decimal? amountUsd = GetAmountUsdValue(message.Volume2, message.AssetId2);
+			if (amountUsd == null)
+				return;
 
-			if (!decimal.TryParse(amountStr, NumberStyles.AllowDecimalPoint, new NumberFormatInfo(), out decimal amount))
+			await SendAppsflyerMessage(clientId, new ExchangingAssetEvent
 			{
-				_logger.LogError("Can't get decimal amount value from \"Volume2\", string \"{value}\", SwapMessage: {@message}.", amountStr, message);
-				return null;
-			}
+				TradeFee = message.FeeAmount,
+				SourceCurrency = message.AssetId1,
+				DestinationCurrency = message.AssetId2,
+				QuoteId = message.Id,
+				AmountUsd = amountUsd.Value,
+				AutoTrade = false
+			});
+		}
 
-			if (amount == 0m)
-				return 0m;
+		private async Task ToAmplitude(SwapMessage message, string clientId)
+		{
+			string feeAsset = message.FeeAsset;
+			decimal feeAmount = message.FeeAmount;
 
-			(IndexPrice _, decimal usdValue) = _converter.GetIndexPriceByAssetVolumeAsync(message.AssetId2, amount);
+			await SendAmplitudeRevenueMessage(clientId, new RevenueEvent
+			{
+				RevenueVolumeInAsset = feeAmount,
+				RevenueAsset = feeAsset,
+				RevenueVolumeInUsd = GetAmountUsdValue(feeAmount, feeAsset),
+				RevenueType = RevenueType.ConvertFee
+			});
 
-			return usdValue;
+			string markupAsset = message.AssetId1;
+			decimal markupAmount = message.MarkUp;
+
+			await SendAmplitudeRevenueMessage(clientId, new RevenueEvent
+			{
+				RevenueVolumeInAsset = markupAmount,
+				RevenueAsset = markupAsset,
+				RevenueVolumeInUsd = GetAmountUsdValue(markupAmount, markupAsset),
+				RevenueType = RevenueType.Markup
+			});
 		}
 	}
 }

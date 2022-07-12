@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Service.AnalyticsUploader.Domain.Models.AnaliticsEvents
+namespace Service.AnalyticsUploader.Domain.Models.AppsflyerEvents
 {
 	public class RecieveDepositFromExternalWalletEvent : IAnaliticsEvent
 	{

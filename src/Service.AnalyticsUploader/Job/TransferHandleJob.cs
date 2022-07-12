@@ -3,8 +3,9 @@ using System.Threading.Tasks;
 using DotNetCoreDecorators;
 using Microsoft.Extensions.Logging;
 using Service.AnalyticsUploader.Domain;
-using Service.AnalyticsUploader.Domain.Models.AnaliticsEvents;
+using Service.AnalyticsUploader.Domain.Models.AppsflyerEvents;
 using Service.ClientProfile.Grpc;
+using Service.IndexPrices.Client;
 using Service.InternalTransfer.Domain.Models;
 using Service.PersonalData.Grpc;
 
@@ -16,10 +17,12 @@ namespace Service.AnalyticsUploader.Job
 
 		public TransferHandleJob(ILogger<TransferHandleJob> logger,
 			ISubscriber<IReadOnlyList<Transfer>> subscriber,
-			IAppsFlyerSender sender,
+			IAppsFlyerSender appsFlyerSender,
 			IPersonalDataServiceGrpc personalDataServiceGrpc,
-			IClientProfileService clientProfileService) :
-				base(logger, personalDataServiceGrpc, clientProfileService, sender)
+			IClientProfileService clientProfileService,
+			IIndexPricesClient converter,
+			IAmplitudeSender amplitudeSender) :
+				base(logger, personalDataServiceGrpc, clientProfileService, appsFlyerSender, amplitudeSender, converter)
 		{
 			_logger = logger;
 			subscriber.Subscribe(HandleEvent);
@@ -43,14 +46,14 @@ namespace Service.AnalyticsUploader.Job
 				decimal amount = message.Amount;
 				string assetSymbol = message.AssetSymbol;
 
-				await SendMessage(clientId, new SendTransferByPhoneEvent
+				await SendAppsflyerMessage(clientId, new SendTransferByPhoneEvent
 				{
 					Amount = amount,
 					Currency = assetSymbol,
 					Receiver = destinationCuid
 				});
 
-				await SendMessage(destinationCuid, new RecieveTransferByPhoneEvent
+				await SendAppsflyerMessage(destinationCuid, new RecieveTransferByPhoneEvent
 				{
 					Amount = amount,
 					Currency = assetSymbol,

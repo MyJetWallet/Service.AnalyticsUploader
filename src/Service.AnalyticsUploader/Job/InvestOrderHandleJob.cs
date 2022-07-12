@@ -3,11 +3,10 @@ using System.Threading.Tasks;
 using DotNetCoreDecorators;
 using Microsoft.Extensions.Logging;
 using Service.AnalyticsUploader.Domain;
-using Service.AnalyticsUploader.Domain.Models.AnaliticsEvents;
+using Service.AnalyticsUploader.Domain.Models.AppsflyerEvents;
 using Service.AutoInvestManager.Domain.Models;
 using Service.ClientProfile.Grpc;
 using Service.IndexPrices.Client;
-using Service.IndexPrices.Domain.Models;
 using Service.PersonalData.Grpc;
 
 namespace Service.AnalyticsUploader.Job
@@ -15,18 +14,17 @@ namespace Service.AnalyticsUploader.Job
 	public class InvestOrderHandleJob : MessageHandleJobBase
 	{
 		private readonly ILogger<InvestOrderHandleJob> _logger;
-		private readonly IIndexPricesClient _converter;
 
 		public InvestOrderHandleJob(ILogger<InvestOrderHandleJob> logger,
 			ISubscriber<IReadOnlyList<InvestOrder>> subscriber,
-			IAppsFlyerSender sender,
+			IAppsFlyerSender appsFlyerSender,
 			IClientProfileService clientProfileService,
 			IPersonalDataServiceGrpc personalDataServiceGrpc,
-			IIndexPricesClient converter) :
-				base(logger, personalDataServiceGrpc, clientProfileService, sender)
+			IIndexPricesClient converter,
+			IAmplitudeSender amplitudeSender) :
+				base(logger, personalDataServiceGrpc, clientProfileService, appsFlyerSender, amplitudeSender, converter)
 		{
 			_logger = logger;
-			_converter = converter;
 			subscriber.Subscribe(HandleEvent);
 		}
 
@@ -41,7 +39,7 @@ namespace Service.AnalyticsUploader.Job
 
 				_logger.LogInformation("Handle InvestOrder message, clientId: {clientId}.", clientId);
 
-				decimal amountUsd = GetAmountUsdValue(message);
+				decimal amountUsd = GetAmountUsdValue(message.ToAmount, message.ToAsset);
 
 				IAnaliticsEvent analiticsEvent = new ExchangingAssetEvent
 				{
@@ -55,19 +53,8 @@ namespace Service.AnalyticsUploader.Job
 					Frequency = GetFrequency(message.ScheduleType)
 				};
 
-				await SendMessage(clientId, analiticsEvent);
+				await SendAppsflyerMessage(clientId, analiticsEvent);
 			}
-		}
-
-		private decimal GetAmountUsdValue(InvestOrder message)
-		{
-			decimal amount = message.ToAmount;
-			if (amount == 0m)
-				return 0m;
-
-			(IndexPrice _, decimal usdValue) = _converter.GetIndexPriceByAssetVolumeAsync(message.ToAsset, amount);
-
-			return usdValue;
 		}
 
 		private static string GetFrequency(ScheduleType scheduleType)

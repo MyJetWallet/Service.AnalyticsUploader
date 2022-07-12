@@ -1,11 +1,11 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Service.AnalyticsUploader.Domain.Models.AnaliticsEvents
+namespace Service.AnalyticsUploader.Domain.Models.AppsflyerEvents
 {
-	public class EarnSubscribeEvent : IAnaliticsEvent
+	public class EarnUnsubscribeEvent : IAnaliticsEvent
 	{
 		[JsonIgnore]
-		public string EventName => "af_earn_subscribe";
+		public string EventName => "af_earn_unsubscribe";
 
 		[JsonPropertyName("isHot")]
 		public bool IsHot { get; set; }
@@ -19,16 +19,10 @@ namespace Service.AnalyticsUploader.Domain.Models.AnaliticsEvents
 		[JsonPropertyName("currency")]
 		public string Asset { get; set; }
 
-		[JsonPropertyName("apyPerDepositAmount")]
-		public decimal? Apy { get; set; }
-
 		[JsonPropertyName("apyPerOffer")]
 		public decimal CurrentApy { get; set; }
 
 		[JsonPropertyName("offerBalance")]
 		public decimal Balance { get; set; }
-
-		[JsonPropertyName("isTopUp")]
-		public bool? IsTopUp { get; set; }
 	}
 }

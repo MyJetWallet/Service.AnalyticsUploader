@@ -48,6 +48,7 @@ namespace Service.AnalyticsUploader.Modules
 			builder.RegisterCircleSettingsReader(myNosqlClient);
 
 			builder.RegisterType<AppsFlyerSender>().AsImplementedInterfaces();
+			builder.RegisterType<AmplitudeSender>().AsImplementedInterfaces();
 
 			builder.RegisterType<ClientRegisterMessageHandleJob>().AutoActivate().SingleInstance();
 			builder.RegisterType<EarnAnaliticsEventHandleJob>().AutoActivate().SingleInstance();

@@ -5,8 +5,9 @@ using System.Threading.Tasks;
 using DotNetCoreDecorators;
 using Microsoft.Extensions.Logging;
 using Service.AnalyticsUploader.Domain;
-using Service.AnalyticsUploader.Domain.Models.AnaliticsEvents;
+using Service.AnalyticsUploader.Domain.Models.AppsflyerEvents;
 using Service.ClientProfile.Grpc;
+using Service.IndexPrices.Client;
 using Service.KYC.Domain.Models;
 using Service.KYC.Domain.Models.Enum;
 using Service.KYC.Domain.Models.Messages;
@@ -22,10 +23,12 @@ namespace Service.AnalyticsUploader.Job
 
 		public KycProfileUpdatedMessageHandleJob(ILogger<KycProfileUpdatedMessageHandleJob> logger,
 			ISubscriber<IReadOnlyList<KycProfileUpdatedMessage>> subscriber,
-			IAppsFlyerSender sender,
+			IAppsFlyerSender appsFlyerSender,
 			IClientProfileService clientProfileService, 
-			IPersonalDataServiceGrpc personalDataServiceGrpc) :
-				base(logger, personalDataServiceGrpc, clientProfileService, sender)
+			IPersonalDataServiceGrpc personalDataServiceGrpc,
+			IIndexPricesClient converter,
+			IAmplitudeSender amplitudeSender) :
+				base(logger, personalDataServiceGrpc, clientProfileService, appsFlyerSender, amplitudeSender, converter)
 		{
 			_logger = logger;
 			subscriber.Subscribe(HandleEvent);
@@ -61,7 +64,7 @@ namespace Service.AnalyticsUploader.Job
 					Sex = personalData.Sex switch {PersonalDataSexEnum.Male => "male",PersonalDataSexEnum.Female => "female",_ => null}
 				};
 
-				await SendMessage(clientId, analiticsEvent);
+				await SendAppsflyerMessage(clientId, analiticsEvent);
 			}
 		}
 

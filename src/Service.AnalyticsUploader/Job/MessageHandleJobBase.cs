@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using MyJetWallet.ServiceBus.SessionAudit.Models;
 using Service.AnalyticsUploader.Domain;
+using Service.AnalyticsUploader.Domain.Models.AmplitudeEvents;
 using Service.ClientProfile.Grpc;
 using Service.ClientProfile.Grpc.Models.Requests;
+using Service.IndexPrices.Client;
+using Service.IndexPrices.Domain.Models;
 using Service.PersonalData.Grpc;
 using Service.PersonalData.Grpc.Contracts;
 using Service.PersonalData.Grpc.Models;
@@ -18,17 +22,23 @@ namespace Service.AnalyticsUploader.Job
 		private readonly ILogger _logger;
 		private readonly IPersonalDataServiceGrpc _personalDataServiceGrpc;
 		private readonly IClientProfileService _clientProfileService;
-		private readonly IAppsFlyerSender _sender;
+		private readonly IAppsFlyerSender _appsFlyerSender;
+		private readonly IAmplitudeSender _amplitudeSender;
+		private readonly IIndexPricesClient _converter;
 
 		protected MessageHandleJobBase(ILogger logger, 
 			IPersonalDataServiceGrpc personalDataServiceGrpc, 
 			IClientProfileService clientProfileService, 
-			IAppsFlyerSender sender)
+			IAppsFlyerSender appsFlyerSender, 
+			IAmplitudeSender amplitudeSender, 
+			IIndexPricesClient converter)
 		{
 			_logger = logger;
 			_personalDataServiceGrpc = personalDataServiceGrpc;
 			_clientProfileService = clientProfileService;
-			_sender = sender;
+			_appsFlyerSender = appsFlyerSender;
+			_amplitudeSender = amplitudeSender;
+			_converter = converter;
 		}
 
 		protected async Task<PersonalDataGrpcModel[]> GetPersonalData(List<string> clientIds)
@@ -90,7 +100,7 @@ namespace Service.AnalyticsUploader.Job
 			}
 		}
 
-		protected async Task SendMessage(string clientId, IAnaliticsEvent analiticsEvent, string ipAddress = null)
+		protected async Task SendAppsflyerMessage(string clientId, IAnaliticsEvent analiticsEvent, string ipAddress = null)
 		{
 			ClientProfile.Domain.Models.ClientProfile clientProfile = await GetClientProfile(clientId);
 			if (clientProfile == null)
@@ -110,7 +120,34 @@ namespace Service.AnalyticsUploader.Job
 				return;
 			}
 
-			await _sender.SendMessage(applicationId, analiticsEvent, cuid, ipAddress);
+			await _appsFlyerSender.SendMessage(applicationId, analiticsEvent, cuid, ipAddress);
+		}
+
+		protected async Task SendAmplitudeRevenueMessage(string clientId, RevenueEvent revenueEvent)
+		{
+			string cuid = await GetExternalClientId(clientId);
+
+			await _amplitudeSender.SendMessage(revenueEvent, cuid, revenueEvent.RevenueVolumeInUsd, revenueEvent.RevenueType);
+		}
+
+		protected decimal? GetAmountUsdValue(string amountStr, string asset)
+		{
+			if (decimal.TryParse(amountStr, NumberStyles.AllowDecimalPoint, new NumberFormatInfo(), out decimal amount))
+				return GetAmountUsdValue(amount, asset);
+
+			_logger.LogError("Can't get decimal amount value from \"Volume2\", string \"{value}\", asset: {@asset}.", amountStr, asset);
+
+			return null;
+		}
+
+		protected decimal GetAmountUsdValue(decimal amount, string asset)
+		{
+			if (amount == 0m)
+				return 0m;
+
+			(IndexPrice _, decimal usdValue) = _converter.GetIndexPriceByAssetVolumeAsync(asset, amount);
+
+			return usdValue;
 		}
 	}
 }

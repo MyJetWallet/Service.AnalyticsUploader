@@ -3,11 +3,12 @@ using System.Threading.Tasks;
 using DotNetCoreDecorators;
 using Microsoft.Extensions.Logging;
 using Service.AnalyticsUploader.Domain;
-using Service.AnalyticsUploader.Domain.Models.AnaliticsEvents;
+using Service.AnalyticsUploader.Domain.Models.AppsflyerEvents;
 using Service.Bitgo.DepositDetector.Domain.Models;
 using Service.Bitgo.DepositDetector.Grpc;
 using Service.Bitgo.DepositDetector.Grpc.Models;
 using Service.ClientProfile.Grpc;
+using Service.IndexPrices.Client;
 using Service.PersonalData.Grpc;
 
 namespace Service.AnalyticsUploader.Job
@@ -23,11 +24,13 @@ namespace Service.AnalyticsUploader.Job
 
 		public DepositHandleJob(ILogger<DepositHandleJob> logger,
 			ISubscriber<IReadOnlyList<Deposit>> subscriber,
-			IAppsFlyerSender sender,
+			IAppsFlyerSender appsFlyerSender,
 			IClientProfileService clientProfileService,
 			IPersonalDataServiceGrpc personalDataServiceGrpc,
-			IDepositService depositService) :
-				base(logger, personalDataServiceGrpc, clientProfileService, sender)
+			IDepositService depositService,
+			IIndexPricesClient converter,
+			IAmplitudeSender amplitudeSender) :
+				base(logger, personalDataServiceGrpc, clientProfileService, appsFlyerSender, amplitudeSender, converter)
 		{
 			_logger = logger;
 			_depositService = depositService;
@@ -87,10 +90,10 @@ namespace Service.AnalyticsUploader.Job
 
 				_logger.LogInformation("Handle Deposit message, clientId: {clientId}.", clientId);
 
-				await SendMessage(clientId, analiticsEvent);
+				await SendAppsflyerMessage(clientId, analiticsEvent);
 
 				if (await CheckFirstTime(clientId, integration))
-					await SendMessage(clientId, new FirstTimeBuyEvent
+					await SendAppsflyerMessage(clientId, new FirstTimeBuyEvent
 					{
 						Amount = amount,
 						Currency = currency,

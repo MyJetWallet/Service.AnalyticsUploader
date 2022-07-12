@@ -3,10 +3,11 @@ using System.Threading.Tasks;
 using DotNetCoreDecorators;
 using Microsoft.Extensions.Logging;
 using Service.AnalyticsUploader.Domain;
-using Service.AnalyticsUploader.Domain.Models.AnaliticsEvents;
+using Service.AnalyticsUploader.Domain.Models.AppsflyerEvents;
 using Service.ClientProfile.Grpc;
 using Service.HighYieldEngine.Domain.Models.Constants;
 using Service.HighYieldEngine.Domain.Models.Messages;
+using Service.IndexPrices.Client;
 using Service.PersonalData.Grpc;
 
 namespace Service.AnalyticsUploader.Job
@@ -18,9 +19,11 @@ namespace Service.AnalyticsUploader.Job
 		public EarnAnaliticsEventHandleJob(ILogger<EarnAnaliticsEventHandleJob> logger,
 			ISubscriber<IReadOnlyList<EarnAnaliticsEvent>> registerSubscriber,
 			IPersonalDataServiceGrpc personalDataServiceGrpc,
-			IAppsFlyerSender sender,
-			IClientProfileService clientProfileService) :
-				base(logger, personalDataServiceGrpc, clientProfileService, sender)
+			IAppsFlyerSender appsFlyerSender,
+			IClientProfileService clientProfileService,
+			IIndexPricesClient converter,
+			IAmplitudeSender amplitudeSender) :
+				base(logger, personalDataServiceGrpc, clientProfileService, appsFlyerSender, amplitudeSender, converter)
 		{
 			_logger = logger;
 			registerSubscriber.Subscribe(HandleEvent);
@@ -65,7 +68,7 @@ namespace Service.AnalyticsUploader.Job
 						CurrentApy = currentApy
 					};
 
-				await SendMessage(clientId, analiticsEvent);
+				await SendAppsflyerMessage(clientId, analiticsEvent);
 			}
 		}
 	}

@@ -1,11 +1,11 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Service.AnalyticsUploader.Domain.Models.AnaliticsEvents
+namespace Service.AnalyticsUploader.Domain.Models.AppsflyerEvents
 {
-	public class SendTransferByWalletExternalEvent : IAnaliticsEvent
+	public class SendTransferByWalletInternalEvent : IAnaliticsEvent
 	{
 		[JsonIgnore]
-		public string EventName => "af_send_transfer_by_wallet_external";
+		public string EventName => "af_send_transfer_by_wallet_internal";
 
 		[JsonPropertyName("amount")]
 		public decimal Amount { get; set; }
