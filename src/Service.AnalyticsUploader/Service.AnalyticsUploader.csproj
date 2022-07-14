@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="MyJetWallet.Circle" Version="1.11.9" />
-    <PackageReference Include="MyJetWallet.Circle.Settings" Version="1.5.0" />
+    <PackageReference Include="MyJetWallet.Circle.Settings" Version="1.5.1" />
     <PackageReference Include="MyJetWallet.Service.AutoInvestManager.Client" Version="1.1.9" />
     <PackageReference Include="MyJetWallet.Service.Bitgo.DepositDetector.Client" Version="2.3.8" />
     <PackageReference Include="MyJetWallet.Service.Bitgo.WithdrawalProcessor.Client" Version="2.13.1" />
