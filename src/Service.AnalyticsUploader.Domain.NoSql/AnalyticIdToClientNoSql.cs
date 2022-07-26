@@ -18,7 +18,7 @@ public class AnalyticIdToClientNoSql: MyNoSqlDbEntity
         {
             PartitionKey = GeneratePartitionKey(clientId),
             RowKey = GenerateAppsflyerIdRowKey(),
-            Id = clientId,
+            Id = appsflyerId,
             ClientId = clientId
         };
     }
