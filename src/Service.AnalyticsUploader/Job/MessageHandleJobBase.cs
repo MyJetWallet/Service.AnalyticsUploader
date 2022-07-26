@@ -125,8 +125,19 @@ namespace Service.AnalyticsUploader.Job
 			}
 
 			var appsflyerId = await _analyticIdToClientManager.GetAppsflyerId(clientId);
+
+			var index = 0;
+			while (string.IsNullOrEmpty(appsflyerId) && index < 10)
+			{
+				await Task.Delay(1000);
+				index++;
+				appsflyerId = await _analyticIdToClientManager.GetAppsflyerId(clientId);
+			}
+			
 			if (string.IsNullOrEmpty(appsflyerId))
 			{
+				await _analyticIdToClientManager.SetAppsflyerId(clientId, clientId);
+				_logger.LogWarning("Do not found AppsflyerId for clientId: {clientID}", clientId);
 				appsflyerId = clientId;
 			}
 
