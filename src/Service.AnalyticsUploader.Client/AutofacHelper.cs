@@ -1,13 +1,17 @@
-﻿using Autofac;
+using Autofac;
+using MyJetWallet.Sdk.NoSql;
 
-// ReSharper disable UnusedMember.Global
+namespace Service.AnalyticsUploader.Client;
 
-namespace Service.AnalyticsUploader.Client
+public static class AutofacHelper
 {
-    public static class AutofacHelper
+    public static void RegisterKycStatusClients(this ContainerBuilder builder, string myNoSqlWriterUrl)
     {
-        public static void RegisterAnalyticsUploaderClient(this ContainerBuilder builder, string grpcServiceUrl)
-        {
-        }
+        builder.RegisterMyNoSqlWriter<AnalyticIdToClientNoSql>(() => myNoSqlWriterUrl, AnalyticIdToClientNoSql.TableName);
+
+        builder
+            .RegisterType<AnalyticIdToClientManager>()
+            .As<IAnalyticIdToClientManager>()
+            .SingleInstance();
     }
 }
