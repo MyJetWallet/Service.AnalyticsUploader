@@ -5,6 +5,7 @@ using MyJetWallet.Sdk.ServiceBus;
 using MyNoSqlServer.DataReader;
 using MyServiceBus.Abstractions;
 using MyServiceBus.TcpClient;
+using Service.AnalyticsUploader.Domain.NoSql;
 using Service.AnalyticsUploader.Job;
 using Service.AnalyticsUploader.Services;
 using Service.AutoInvestManager.Domain.Models;
@@ -58,6 +59,12 @@ namespace Service.AnalyticsUploader.Modules
 			builder.RegisterType<SwapMessageHandleJob>().AutoActivate().SingleInstance();
 			builder.RegisterType<InvestOrderHandleJob>().AutoActivate().SingleInstance();
 			builder.RegisterType<DepositHandleJob>().AutoActivate().SingleInstance();
+			
+			builder.RegisterMyNoSqlWriter<AnalyticIdToClientNoSql>(() => Program.Settings.MyNoSqlWriterUrl, AnalyticIdToClientNoSql.TableName);
+			builder
+				.RegisterType<AnalyticIdToClientManager>()
+				.As<IAnalyticIdToClientManager>()
+				.SingleInstance();
 		}
 	}
 }

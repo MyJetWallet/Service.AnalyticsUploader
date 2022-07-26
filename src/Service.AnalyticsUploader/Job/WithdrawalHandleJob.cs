@@ -6,6 +6,7 @@ using Service.AnalyticsUploader.Domain;
 using Service.AnalyticsUploader.Domain.Models.AmplitudeEvents;
 using Service.AnalyticsUploader.Domain.Models.AppsflyerEvents;
 using Service.AnalyticsUploader.Domain.Models.Constants;
+using Service.AnalyticsUploader.Domain.NoSql;
 using Service.Bitgo.WithdrawalProcessor.Domain.Models;
 using Service.ClientProfile.Grpc;
 using Service.IndexPrices.Client;
@@ -23,8 +24,9 @@ namespace Service.AnalyticsUploader.Job
 			IPersonalDataServiceGrpc personalDataServiceGrpc,
 			IClientProfileService clientProfileService,
 			IIndexPricesClient converter,
-			IAmplitudeSender amplitudeSender) :
-				base(logger, personalDataServiceGrpc, clientProfileService, appsFlyerSender, amplitudeSender, converter)
+			IAmplitudeSender amplitudeSender,
+			IAnalyticIdToClientManager analyticIdToClientManager) :
+				base(logger, personalDataServiceGrpc, clientProfileService, appsFlyerSender, amplitudeSender, converter, analyticIdToClientManager)
 		{
 			_logger = logger;
 			subscriber.Subscribe(HandleEvent);

@@ -1,5 +1,6 @@
 using Autofac;
 using MyJetWallet.Sdk.NoSql;
+using Service.AnalyticsUploader.Domain.NoSql;
 
 namespace Service.AnalyticsUploader.Client;
 

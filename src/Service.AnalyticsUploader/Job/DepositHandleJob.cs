@@ -4,6 +4,7 @@ using DotNetCoreDecorators;
 using Microsoft.Extensions.Logging;
 using Service.AnalyticsUploader.Domain;
 using Service.AnalyticsUploader.Domain.Models.AppsflyerEvents;
+using Service.AnalyticsUploader.Domain.NoSql;
 using Service.Bitgo.DepositDetector.Domain.Models;
 using Service.Bitgo.DepositDetector.Grpc;
 using Service.Bitgo.DepositDetector.Grpc.Models;
@@ -29,8 +30,9 @@ namespace Service.AnalyticsUploader.Job
 			IPersonalDataServiceGrpc personalDataServiceGrpc,
 			IDepositService depositService,
 			IIndexPricesClient converter,
-			IAmplitudeSender amplitudeSender) :
-				base(logger, personalDataServiceGrpc, clientProfileService, appsFlyerSender, amplitudeSender, converter)
+			IAmplitudeSender amplitudeSender,
+			IAnalyticIdToClientManager analyticIdToClientManager) :
+				base(logger, personalDataServiceGrpc, clientProfileService, appsFlyerSender, amplitudeSender, converter, analyticIdToClientManager)
 		{
 			_logger = logger;
 			_depositService = depositService;

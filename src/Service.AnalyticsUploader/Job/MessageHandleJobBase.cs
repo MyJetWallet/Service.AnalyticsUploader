@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using MyJetWallet.ServiceBus.SessionAudit.Models;
 using Service.AnalyticsUploader.Domain;
 using Service.AnalyticsUploader.Domain.Models.AmplitudeEvents;
+using Service.AnalyticsUploader.Domain.NoSql;
 using Service.ClientProfile.Grpc;
 using Service.ClientProfile.Grpc.Models.Requests;
 using Service.IndexPrices.Client;
@@ -25,13 +26,15 @@ namespace Service.AnalyticsUploader.Job
 		private readonly IAppsFlyerSender _appsFlyerSender;
 		private readonly IAmplitudeSender _amplitudeSender;
 		private readonly IIndexPricesClient _converter;
+		private readonly IAnalyticIdToClientManager _analyticIdToClientManager;
 
 		protected MessageHandleJobBase(ILogger logger, 
 			IPersonalDataServiceGrpc personalDataServiceGrpc, 
 			IClientProfileService clientProfileService, 
 			IAppsFlyerSender appsFlyerSender, 
 			IAmplitudeSender amplitudeSender, 
-			IIndexPricesClient converter)
+			IIndexPricesClient converter, 
+			IAnalyticIdToClientManager analyticIdToClientManager)
 		{
 			_logger = logger;
 			_personalDataServiceGrpc = personalDataServiceGrpc;
@@ -39,6 +42,7 @@ namespace Service.AnalyticsUploader.Job
 			_appsFlyerSender = appsFlyerSender;
 			_amplitudeSender = amplitudeSender;
 			_converter = converter;
+			_analyticIdToClientManager = analyticIdToClientManager;
 		}
 
 		protected async Task<PersonalDataGrpcModel[]> GetPersonalData(List<string> clientIds)
@@ -120,7 +124,13 @@ namespace Service.AnalyticsUploader.Job
 				return;
 			}
 
-			await _appsFlyerSender.SendMessage(applicationId, analiticsEvent, cuid, ipAddress);
+			var appsflyerId = await _analyticIdToClientManager.GetAppsflyerId(clientId);
+			if (string.IsNullOrEmpty(appsflyerId))
+			{
+				appsflyerId = clientId;
+			}
+
+			await _appsFlyerSender.SendMessage(appsflyerId, applicationId, analiticsEvent, cuid, ipAddress);
 		}
 
 		protected async Task SendAmplitudeRevenueMessage(string clientId, RevenueEvent revenueEvent)

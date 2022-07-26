@@ -4,6 +4,6 @@ namespace Service.AnalyticsUploader.Domain
 {
 	public interface IAppsFlyerSender
 	{
-		Task SendMessage(string applicationId, IAnaliticsEvent analiticsEvent, string externalClientId = null, string ipAddress = null);
+		Task SendMessage(string appsflyerId, string applicationId, IAnaliticsEvent analiticsEvent, string externalClientId = null, string ipAddress = null);
 	}
 }

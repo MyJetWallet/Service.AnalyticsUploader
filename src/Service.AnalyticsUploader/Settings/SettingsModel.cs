@@ -19,6 +19,9 @@ namespace Service.AnalyticsUploader.Settings
 
 		[YamlProperty("AnalyticsUploader.MyNoSqlReaderHostPort")]
 		public string MyNoSqlReaderHostPort { get; set; }
+		
+		[YamlProperty("AnalyticsUploader.MyNoSqlWriterUrl")]
+		public string MyNoSqlWriterUrl { get; set; }
 
 		[YamlProperty("AnalyticsUploader.PersonalDataGrpcServiceUrl")]
 		public string PersonalDataGrpcServiceUrl { get; set; }

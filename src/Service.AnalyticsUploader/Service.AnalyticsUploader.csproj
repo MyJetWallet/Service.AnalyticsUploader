@@ -30,6 +30,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Service.AnalyticsUploader.Domain.Models\Service.AnalyticsUploader.Domain.Models.csproj" />
+    <ProjectReference Include="..\Service.AnalyticsUploader.Domain.NoSql\Service.AnalyticsUploader.Domain.NoSql.csproj" />
     <ProjectReference Include="..\Service.AnalyticsUploader.Domain\Service.AnalyticsUploader.Domain.csproj" />
   </ItemGroup>
 

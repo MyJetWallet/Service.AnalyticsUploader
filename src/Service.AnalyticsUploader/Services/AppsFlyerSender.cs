@@ -16,7 +16,7 @@ namespace Service.AnalyticsUploader.Services
 			_logger = logger;
 		}
 
-		public async Task SendMessage(string applicationId, IAnaliticsEvent analiticsEvent, string externalClientId = null, string ipAddress = null)
+		public async Task SendMessage(string appsflyerId, string applicationId, IAnaliticsEvent analiticsEvent, string externalClientId = null, string ipAddress = null)
 		{
 			Uri uri = new UriBuilder(Program.Settings.AppsFlyerUriHost).Uri;
 			var client = new RestClient(uri);
@@ -27,7 +27,7 @@ namespace Service.AnalyticsUploader.Services
 
 			object body = new
 			{
-				appsflyer_id = Guid.NewGuid().ToString("N"),
+				appsflyer_id = appsflyerId,
 				customer_user_id = externalClientId,
 				eventName = analiticsEvent.GetEventName(),
 				ip = ipAddress,

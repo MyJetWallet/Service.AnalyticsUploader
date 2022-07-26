@@ -1,7 +1,6 @@
-using System.Threading.Tasks;
 using MyNoSqlServer.Abstractions;
 
-namespace Service.AnalyticsUploader.Client;
+namespace Service.AnalyticsUploader.Domain.NoSql;
 
 public class AnalyticIdToClientManager : IAnalyticIdToClientManager
 {

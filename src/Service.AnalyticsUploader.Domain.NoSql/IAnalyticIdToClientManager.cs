@@ -1,6 +1,4 @@
-using System.Threading.Tasks;
-
-namespace Service.AnalyticsUploader.Client;
+namespace Service.AnalyticsUploader.Domain.NoSql;
 
 public interface IAnalyticIdToClientManager
 {

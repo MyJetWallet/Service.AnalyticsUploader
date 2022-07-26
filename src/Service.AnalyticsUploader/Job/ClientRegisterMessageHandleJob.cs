@@ -5,6 +5,7 @@ using DotNetCoreDecorators;
 using Microsoft.Extensions.Logging;
 using Service.AnalyticsUploader.Domain;
 using Service.AnalyticsUploader.Domain.Models.AppsflyerEvents;
+using Service.AnalyticsUploader.Domain.NoSql;
 using Service.ClientProfile.Grpc;
 using Service.IndexPrices.Client;
 using Service.PersonalData.Grpc;
@@ -23,8 +24,9 @@ namespace Service.AnalyticsUploader.Job
 			IAppsFlyerSender appsFlyerSender,
 			IClientProfileService clientProfileService,
 			IIndexPricesClient converter,
-			IAmplitudeSender amplitudeSender) :
-				base(logger, personalDataServiceGrpc, clientProfileService, appsFlyerSender, amplitudeSender, converter)
+			IAmplitudeSender amplitudeSender,
+			IAnalyticIdToClientManager analyticIdToClientManager) :
+				base(logger, personalDataServiceGrpc, clientProfileService, appsFlyerSender, amplitudeSender, converter, analyticIdToClientManager)
 		{
 			_logger = logger;
 			registerSubscriber.Subscribe(HandleEvent);
