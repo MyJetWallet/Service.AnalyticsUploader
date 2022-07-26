@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Service.AnalyticsUploader.Domain.NoSql\Service.AnalyticsUploader.Domain.NoSql.csproj" />
+    <ProjectReference PrivateAssets="All" Include="..\Service.AnalyticsUploader.Domain.NoSql\Service.AnalyticsUploader.Domain.NoSql.csproj" />
   </ItemGroup>
 
   <ItemGroup>
